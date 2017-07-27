@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="VerticalDrawerLayout">
+        <!-- 初始的时候底部的有多少比例露在外面 -->
+        <attr name="drawer_face_ratio" format="float" />
+    </declare-styleable>
+</resources>

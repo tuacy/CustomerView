@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">LayoutParams</string>
+    <string name="share_document">分享文档链接</string>
+    <string name="computer">电脑快传</string>
+    <string name="pdf_extract_merge">PDF提取合并</string>
+    <string name="listener_document">听文档</string>
+    <string name="pdf_to_word">PDF转Word</string>
+    <string name="speech_memoir">演讲实录</string>
+    <string name="scan">扫一扫</string>
+    <string name="share_play">共享播放</string>
+    <string name="projection_document">投影文档</string>
+    <string name="online_disk">网盘</string>
+    <string name="document_downsizing">文档瘦身</string>
+    <string name="no_nearly_open_document">暂无最近打开文档</string>
+
+    <string name="text">文字</string>
+    <string name="display">演示</string>
+    <string name="table">表格</string>
+</resources>
