@@ -12,6 +12,9 @@ import android.widget.Scroller;
 
 import com.tuacy.columndragglelist.R;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 public class ColumnDraggableListView extends ListView {
 
@@ -19,21 +22,22 @@ public class ColumnDraggableListView extends ListView {
 	private static final int SCROLL_DIRECTION_VERTICAL   = 1;
 	private static final int SCROLL_DIRECTION_HORIZONTAL = 2;
 
-	private static final int DIRECTION_NONE  = 0;
-	private static final int DIRECTION_LEFT  = 1;
-	private static final int DIRECTION_RIGHT = 2;
+	public static final int DIRECTION_NONE  = 0;
+	public static final int DIRECTION_LEFT  = 1;
+	public static final int DIRECTION_RIGHT = 2;
 
 	private static final int SNAP_VELOCITY = 500;//速度
 
-	private Scroller        mScroller;
-	private VelocityTracker mVelocityTracker;
-	private int             mTouchSlop;
-	private int             mScrollDirection;
-	private float           mLastMotionDownX;
-	private float           mLastMotionDownY;
-	private float           mLastMotionX;
-	private boolean         mIsSliding;
-	private int             mDirection;
+	private Scroller                           mScroller;
+	private VelocityTracker                    mVelocityTracker;
+	private int                                mTouchSlop;
+	private int                                mScrollDirection;
+	private float                              mLastMotionDownX;
+	private float                              mLastMotionDownY;
+	private float                              mLastMotionX;
+	private boolean                            mIsSliding;
+	private int                                mDirection;
+	private List<ColumnDraggableSlideListener> mSlideListenerList;
 
 	public ColumnDraggableListView(Context context) {
 		this(context, null);
@@ -159,16 +163,39 @@ public class ColumnDraggableListView extends ListView {
 		for (int i = 0; i < count; i++) {
 			View itemView = getChildAt(i);
 			ColumnDraggableSlideLayout slideView = (ColumnDraggableSlideLayout) itemView.findViewById(R.id.column_draggable_item_drag_id);
+			//最多可以滑动的距离
 			int maxScrollX = slideView.getRealityWidth() - slideView.getWidth();
 			if (slideView.getScrollX() <= maxScrollX && slideView.getScrollX() >= 0) {
 				slideView.scrollBy(deltaX, 0);
+				//避免有些情况滑到范围之外去
 				if (slideView.getScrollX() > maxScrollX) {
-					slideView.scrollTo(maxScrollX, 0);
+					slideView.scrollBy(maxScrollX - slideView.getScrollX(), 0);
 				}
 				if (slideView.getScrollX() < 0) {
-					slideView.scrollTo(0, 0);
+					slideView.scrollBy(-slideView.getScrollX(), 0);
 				}
 			}
+		}
+	}
+
+	private void notifySlideListener(int byX) {
+		if (mSlideListenerList != null && !mSlideListenerList.isEmpty()) {
+			for (ColumnDraggableSlideListener listener : mSlideListenerList) {
+				listener.onColumnSlideListener(byX);
+			}
+		}
+	}
+
+	public void addOnSlideListener(ColumnDraggableSlideListener listener) {
+		if (mSlideListenerList == null) {
+			mSlideListenerList = new ArrayList<>();
+		}
+		mSlideListenerList.add(listener);
+	}
+
+	public void removeOnSlideListener(ColumnDraggableSlideListener listener) {
+		if (mSlideListenerList != null && mSlideListenerList.contains(listener)) {
+			mSlideListenerList.remove(listener);
 		}
 	}
 }
