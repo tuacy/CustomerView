@@ -4,6 +4,7 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.BaseAdapter;
 import android.widget.LinearLayout;
 
@@ -13,8 +14,9 @@ import java.util.List;
 
 public abstract class ColumnDraggableBaseAdapter extends BaseAdapter {
 
-	private Context             mContext;
-	private ColumnDraggableData mData;
+	protected Context             mContext;
+	protected ColumnDraggableData mData;
+	protected int                 mDraggableColumnStart;
 
 	public ColumnDraggableBaseAdapter(Context context) {
 		this(context, null);
@@ -23,6 +25,16 @@ public abstract class ColumnDraggableBaseAdapter extends BaseAdapter {
 	public ColumnDraggableBaseAdapter(Context context, ColumnDraggableData data) {
 		mContext = context;
 		mData = data;
+		mDraggableColumnStart = 0;
+	}
+
+	public void setData(ColumnDraggableData data) {
+		mData = data;
+		notifyDataSetChanged();
+	}
+
+	public void setDraggableColumnStart(int start) {
+		mDraggableColumnStart = start;
 	}
 
 	@Override
@@ -45,26 +57,55 @@ public abstract class ColumnDraggableBaseAdapter extends BaseAdapter {
 
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
+		List<String> itemData = getItem(position);
 		ColumnDraggableHolder holder;
 		if (convertView == null) {
 			convertView = LayoutInflater.from(mContext).inflate(R.layout.item_column_draggable_wrap, parent, false);
-			//组合每一行的View,包含两部分，一个是固定的LinearLayout,一个是可滑动的LinearLayout
-			convertView(getItemViewHeight(), (LinearLayout) convertView.findViewById(R.id.column_draggable_item_fixed_id),
-						(LinearLayout) convertView.findViewById(R.id.column_draggable_item_drag_id));
+			AbsListView.LayoutParams params = (AbsListView.LayoutParams) convertView.getLayoutParams();
+			params.height = (int) getItemViewHeight();
+			convertView.setLayoutParams(params);
 			holder = new ColumnDraggableHolder(convertView, position);
+			LinearLayout fixedLayout = (LinearLayout) convertView.findViewById(R.id.column_draggable_item_fixed_id);
+			LinearLayout slideLayout = (LinearLayout) convertView.findViewById(R.id.column_draggable_item_drag_id);
+			//组合每一行的View,包含两部分，一个是固定的LinearLayout,一个是可滑动的LinearLayout
+			if (itemData != null && !itemData.isEmpty()) {
+				for (int index = 0; index < itemData.size(); index++) {
+					View columnView;
+					if (index < mDraggableColumnStart) {
+						columnView = getFixedColumnViewByPosition(getItemViewHeight(), index, fixedLayout);
+						fixedLayout.addView(columnView);
+					} else {
+						columnView = getSlideColumnViewPosition(getItemViewHeight(), index, slideLayout);
+						slideLayout.addView(columnView);
+					}
+					holder.addColumnView(index, columnView);
+				}
+			}
 			convertView.setTag(holder);
 		} else {
 			holder = (ColumnDraggableHolder) convertView.getTag();
 			//更新下holder position的位置
 			holder.setPosition(position);
 		}
-		convertData(holder, getItem(position), position);
+		if (itemData != null && !itemData.isEmpty()) {
+			for (int index = 0; index < itemData.size(); index++) {
+				if (holder.getColumnView(index) != null) {
+					convertColumnViewDataByPosition(index, holder.getColumnView(index), itemData.get(index), itemData);
+				}
+			}
+		}
 		return holder.getConvertView();
 	}
 
-	public abstract int getItemViewHeight();
+	public abstract float getItemViewHeight();
 
-	public abstract void convertView(int itemHeight, LinearLayout fixedColumnLayout, LinearLayout dragColumnLayout);
+	public abstract View getFixedColumnViewByPosition(float itemHeight, int columnPosition, LinearLayout fixedColumnLayout);
 
-	public abstract void convertData(ColumnDraggableHolder viewHolder, List<String> itemData, int position);
+	public abstract View getSlideColumnViewPosition(float itemHeight, int columnPosition, LinearLayout slideColumnLayout);
+
+	public abstract View convertColumnViewDataByPosition(int columnPosition,
+														 View columnView,
+														 String columnData,
+														 List<String> columnDataList);
+
 }

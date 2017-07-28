@@ -5,10 +5,7 @@ import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.widget.LinearLayout;
 
-public class ColumnDraggableHeaderLayout extends LinearLayout {
-
-	private ColumnDraggableLayout   mHeaderView;
-	private ColumnDraggableListView mListView;
+public class ColumnDraggableHeaderLayout extends LinearLayout{
 
 	public ColumnDraggableHeaderLayout(Context context) {
 		this(context, null);
@@ -20,10 +17,5 @@ public class ColumnDraggableHeaderLayout extends LinearLayout {
 
 	public ColumnDraggableHeaderLayout(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
 		super(context, attrs, defStyleAttr);
-	}
-
-	@Override
-	protected void onFinishInflate() {
-		super.onFinishInflate();
 	}
 }
