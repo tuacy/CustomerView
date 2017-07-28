@@ -66,7 +66,8 @@ public abstract class ColumnDraggableBaseAdapter extends BaseAdapter {
 			convertView.setLayoutParams(params);
 			holder = new ColumnDraggableHolder(convertView, position);
 			LinearLayout fixedLayout = (LinearLayout) convertView.findViewById(R.id.column_draggable_item_fixed_id);
-			LinearLayout slideLayout = (LinearLayout) convertView.findViewById(R.id.column_draggable_item_drag_id);
+			ColumnDraggableSlideLayout slideLayout = (ColumnDraggableSlideLayout) convertView.findViewById(
+				R.id.column_draggable_item_drag_id);
 			//组合每一行的View,包含两部分，一个是固定的LinearLayout,一个是可滑动的LinearLayout
 			if (itemData != null && !itemData.isEmpty()) {
 				for (int index = 0; index < itemData.size(); index++) {
@@ -101,7 +102,7 @@ public abstract class ColumnDraggableBaseAdapter extends BaseAdapter {
 
 	public abstract View getFixedColumnViewByPosition(float itemHeight, int columnPosition, LinearLayout fixedColumnLayout);
 
-	public abstract View getSlideColumnViewPosition(float itemHeight, int columnPosition, LinearLayout slideColumnLayout);
+	public abstract View getSlideColumnViewPosition(float itemHeight, int columnPosition, ColumnDraggableSlideLayout slideColumnLayout);
 
 	public abstract View convertColumnViewDataByPosition(int columnPosition,
 														 View columnView,

@@ -10,7 +10,7 @@
         android:layout_height="match_parent"
         android:orientation="horizontal" />
 
-    <LinearLayout
+    <com.tuacy.columndragglelist.widget.ColumnDraggableSlideLayout
         android:id="@id/column_draggable_item_drag_id"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

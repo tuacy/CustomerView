@@ -4,10 +4,13 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
+import android.view.View;
 import android.view.ViewConfiguration;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.Scroller;
+
+import com.tuacy.columndragglelist.R;
 
 
 public class ColumnDraggableListView extends ListView {
@@ -103,6 +106,7 @@ public class ColumnDraggableListView extends ListView {
 					}
 					final int deltaX = (int) (mLastMotionX - x);//滑动的距离
 					mLastMotionX = x;
+					prepareSlide(deltaX);
 				}
 				break;
 			case MotionEvent.ACTION_UP:
@@ -139,8 +143,32 @@ public class ColumnDraggableListView extends ListView {
 		return true;
 	}
 
+	@Override
+	public void computeScroll() {
+		super.computeScroll();
+	}
+
 	protected boolean canScrollHorizontal() {
 		//TODO:
 		return true;
+	}
+
+	private void prepareSlide(int deltaX) {
+		int count = getChildCount();
+
+		for (int i = 0; i < count; i++) {
+			View itemView = getChildAt(i);
+			ColumnDraggableSlideLayout slideView = (ColumnDraggableSlideLayout) itemView.findViewById(R.id.column_draggable_item_drag_id);
+			int maxScrollX = slideView.getRealityWidth() - slideView.getWidth();
+			if (slideView.getScrollX() <= maxScrollX && slideView.getScrollX() >= 0) {
+				slideView.scrollBy(deltaX, 0);
+				if (slideView.getScrollX() > maxScrollX) {
+					slideView.scrollTo(maxScrollX, 0);
+				}
+				if (slideView.getScrollX() < 0) {
+					slideView.scrollTo(0, 0);
+				}
+			}
+		}
 	}
 }

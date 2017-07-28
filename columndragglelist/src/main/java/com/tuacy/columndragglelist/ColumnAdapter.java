@@ -7,6 +7,7 @@ import android.widget.LinearLayout;
 
 import com.tuacy.columndragglelist.widget.ColumnDraggableBaseAdapter;
 import com.tuacy.columndragglelist.widget.ColumnDraggableData;
+import com.tuacy.columndragglelist.widget.ColumnDraggableSlideLayout;
 
 import java.util.List;
 
@@ -31,7 +32,7 @@ public class ColumnAdapter extends ColumnDraggableBaseAdapter {
 	}
 
 	@Override
-	public View getSlideColumnViewPosition(float itemHeight, int columnPosition, LinearLayout slideColumnLayout) {
+	public View getSlideColumnViewPosition(float itemHeight, int columnPosition, ColumnDraggableSlideLayout slideColumnLayout) {
 		return LayoutInflater.from(mContext).inflate(R.layout.item_draggable_drag_cell, slideColumnLayout, false);
 	}
 
