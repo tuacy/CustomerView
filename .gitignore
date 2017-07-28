@@ -1,0 +1,11 @@
+/.gradle
+/.idea
+/build
+/CustomerView.iml
+/gradlew
+/gradlew.bat
+/columndragglelist/columndragglelist.iml
+/copywps/copywps.iml
+/layoutanimation/layoutanimation.iml
+/layoutparams/layoutparams.iml
+/library/library.iml
