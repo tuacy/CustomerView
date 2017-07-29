@@ -4,8 +4,8 @@ package com.tuacy.columndragglelist.widget;
 import android.content.Context;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
-import android.view.View;
 import android.widget.LinearLayout;
+
 
 
 public class ColumnDraggableSlideLayout extends LinearLayout {
@@ -44,27 +44,8 @@ public class ColumnDraggableSlideLayout extends LinearLayout {
 		return realityWidth;
 	}
 
-	public int slideToColumnDdgeByX(int direction) {
-		int moveX = 0;
-		int scrollX = getScrollX();
-		int hideWidth = 0;
-		int flagViewPosition = -1;
-		for (int index = 0; index < getChildCount(); index++) {
-			hideWidth += getChildAt(index).getWidth();
-			if (hideWidth > scrollX) {
-				flagViewPosition = index;
-				break;
-			}
-		}
-		if (flagViewPosition != -1) {
-			int distance = hideWidth - scrollX;
-			View flagView = getChildAt(flagViewPosition);
-			if (distance > flagView.getWidth() / 2) {
-				moveX = -(flagView.getWidth() - direction);
-			} else {
-				moveX = distance;
-			}
-		}
-		return moveX;
+	public int getSlideToColumnEdgeMoveX(int direction) {
+		//TODO:
+		return 0;
 	}
 }

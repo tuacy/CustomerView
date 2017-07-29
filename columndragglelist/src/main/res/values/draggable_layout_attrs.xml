@@ -2,6 +2,7 @@
 <resources>
     <declare-styleable name="ColumnDraggableLayout">
         <!-- 从哪一列开始可以滑动 -->
+        <attr name="column_title_height" format="dimension" />
         <attr name="column_draggable_start" format="integer" />
     </declare-styleable>
 </resources>

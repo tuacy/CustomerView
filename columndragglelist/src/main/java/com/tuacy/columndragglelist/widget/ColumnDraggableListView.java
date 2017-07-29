@@ -65,6 +65,7 @@ public class ColumnDraggableListView extends ListView {
 		if (!(adapter instanceof ColumnDraggableBaseAdapter)) {
 			throw new IllegalArgumentException("adapter should abstract ColumnDraggableBaseAdapter");
 		}
+		addOnSlideListener((ColumnDraggableBaseAdapter) adapter);
 	}
 
 	@Override
@@ -110,7 +111,7 @@ public class ColumnDraggableListView extends ListView {
 					}
 					final int deltaX = (int) (mLastMotionX - x);//滑动的距离
 					mLastMotionX = x;
-					prepareSlide(deltaX);
+					prepareSlideMove(deltaX);
 				}
 				break;
 			case MotionEvent.ACTION_UP:
@@ -118,11 +119,11 @@ public class ColumnDraggableListView extends ListView {
 					final VelocityTracker velocityTracker = mVelocityTracker;
 					velocityTracker.computeCurrentVelocity(1000);//1000毫秒移动了多少像素
 					int velocityX = (int) velocityTracker.getXVelocity();//当前的速度
-					if (canScrollHorizontal()) {
+					if (canSlideHorizontal()) {
 						if (Math.abs(velocityX) < SNAP_VELOCITY) {
-							//TODO:
+							prepareSlideToColumnEdge();
 						} else {
-							//TODO:
+							prepareFling(-velocityX);
 						}
 					}
 					if (mVelocityTracker != null) {
@@ -139,6 +140,10 @@ public class ColumnDraggableListView extends ListView {
 			case MotionEvent.ACTION_CANCEL:
 				mIsSliding = false;
 				mScrollDirection = SCROLL_DIRECTION_NONE;
+				if (mVelocityTracker != null) {
+					mVelocityTracker.recycle();
+					mVelocityTracker = null;
+				}
 				break;
 		}
 		if (!mIsSliding) {
@@ -149,24 +154,60 @@ public class ColumnDraggableListView extends ListView {
 
 	@Override
 	public void computeScroll() {
-		super.computeScroll();
+		if (mScroller.computeScrollOffset()) {
+			prepareSlideSet(mScroller.getCurrX());
+			postInvalidate();
+		}
 	}
 
-	protected boolean canScrollHorizontal() {
-		//TODO:
-		return true;
+	/**
+	 * 判断是否还运行滑动
+	 */
+	protected boolean canSlideHorizontal() {
+		if (getChildCount() > 0) {
+			View itemView = getChildAt(0);
+			ColumnDraggableSlideLayout slideView = (ColumnDraggableSlideLayout) itemView.findViewById(R.id.column_draggable_item_drag_id);
+			//最多可以滑动的距离
+			int maxScrollX = slideView.getRealityWidth() - slideView.getWidth();
+			if (slideView.getScrollX() < maxScrollX && slideView.getScrollX() > 0) {
+				return true;
+			}
+		}
+		return false;
 	}
 
-	private void prepareSlide(int deltaX) {
-		int count = getChildCount();
-
-		for (int i = 0; i < count; i++) {
+	private void prepareSlideSet(int setX) {
+		for (int i = 0; i < getChildCount(); i++) {
 			View itemView = getChildAt(i);
 			ColumnDraggableSlideLayout slideView = (ColumnDraggableSlideLayout) itemView.findViewById(R.id.column_draggable_item_drag_id);
 			//最多可以滑动的距离
 			int maxScrollX = slideView.getRealityWidth() - slideView.getWidth();
 			if (slideView.getScrollX() <= maxScrollX && slideView.getScrollX() >= 0) {
-				slideView.scrollBy(deltaX, 0);
+				slideView.scrollTo(setX, 0);
+				//避免有些情况滑到范围之外去
+				if (slideView.getScrollX() > maxScrollX) {
+					slideView.scrollTo(maxScrollX, 0);
+				}
+				if (slideView.getScrollX() < 0) {
+					slideView.scrollTo(0, 0);
+				}
+			}
+		}
+		if (getChildCount() > 0) {
+			View itemView = getChildAt(0);
+			ColumnDraggableSlideLayout slideView = (ColumnDraggableSlideLayout) itemView.findViewById(R.id.column_draggable_item_drag_id);
+			notifySlideListener(slideView.getScrollX());
+		}
+	}
+
+	private void prepareSlideMove(int moveX) {
+		for (int i = 0; i < getChildCount(); i++) {
+			View itemView = getChildAt(i);
+			ColumnDraggableSlideLayout slideView = (ColumnDraggableSlideLayout) itemView.findViewById(R.id.column_draggable_item_drag_id);
+			//最多可以滑动的距离
+			int maxScrollX = slideView.getRealityWidth() - slideView.getWidth();
+			if (slideView.getScrollX() <= maxScrollX && slideView.getScrollX() >= 0) {
+				slideView.scrollBy(moveX, 0);
 				//避免有些情况滑到范围之外去
 				if (slideView.getScrollX() > maxScrollX) {
 					slideView.scrollBy(maxScrollX - slideView.getScrollX(), 0);
@@ -176,12 +217,32 @@ public class ColumnDraggableListView extends ListView {
 				}
 			}
 		}
+		if (getChildCount() > 0) {
+			View itemView = getChildAt(0);
+			ColumnDraggableSlideLayout slideView = (ColumnDraggableSlideLayout) itemView.findViewById(R.id.column_draggable_item_drag_id);
+			notifySlideListener(slideView.getScrollX());
+		}
 	}
 
-	private void notifySlideListener(int byX) {
+	private void prepareSlideToColumnEdge() {
+		//TODO:
+	}
+
+	private void prepareFling(int velocityX) {
+		if (getChildCount() == 0) {
+			return;
+		}
+		View itemView = getChildAt(0);
+		ColumnDraggableSlideLayout slideView = (ColumnDraggableSlideLayout) itemView.findViewById(R.id.column_draggable_item_drag_id);
+		int maxScrollX = slideView.getRealityWidth() - slideView.getWidth();
+		mScroller.fling(slideView.getScrollX(), 0, velocityX, 0, 0, maxScrollX, 0, 0);
+		invalidate();
+	}
+
+	private void notifySlideListener(int setX) {
 		if (mSlideListenerList != null && !mSlideListenerList.isEmpty()) {
 			for (ColumnDraggableSlideListener listener : mSlideListenerList) {
-				listener.onColumnSlideListener(byX);
+				listener.onColumnSlideListener(setX);
 			}
 		}
 	}
