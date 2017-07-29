@@ -29,7 +29,7 @@ public class ColumnAdapter extends ColumnDraggableBaseAdapter {
 
 	@Override
 	public int getColumnWidth(int columnIndex) {
-		if (columnIndex < mDraggableColumnStart) {
+		if (columnIndex < mSlideColumnStart) {
 			return (int) mContext.getResources().getDimension(R.dimen.item_fixed_column_width);
 		} else {
 			return (int) mContext.getResources().getDimension(R.dimen.item_slide_column_width);
@@ -37,19 +37,19 @@ public class ColumnAdapter extends ColumnDraggableBaseAdapter {
 	}
 
 	@Override
-	public View getFixedColumnViewByPosition(int columnPosition, LinearLayout fixedColumnLayout) {
+	public View getFixedColumnView(int columnIndex, LinearLayout fixedColumnLayout) {
 		return LayoutInflater.from(mContext).inflate(R.layout.item_draggable_fixed_column_cell, fixedColumnLayout, false);
 	}
 
 	@Override
-	public View getSlideColumnViewPosition(int columnPosition, ColumnDraggableSlideLayout slideColumnLayout) {
+	public View getSlideColumnView(int columnIndex, ColumnDraggableSlideLayout slideColumnLayout) {
 		return LayoutInflater.from(mContext).inflate(R.layout.item_draggable_slide_column_cell, slideColumnLayout, false);
 	}
 
 	@Override
-	public void convertColumnViewDataByPosition(int columnIndex, View columnView, String columnData, List<String> columnDataList) {
+	public void convertColumnViewData(int columnIndex, View columnView, String columnData, List<String> columnDataList) {
 		String columnText = columnDataList.get(columnIndex);
-		if (columnIndex < mDraggableColumnStart) {
+		if (columnIndex < mSlideColumnStart) {
 			TextView textView = (TextView) columnView.findViewById(R.id.text_fixed_cell_item);
 			textView.setText(columnText);
 		} else {

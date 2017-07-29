@@ -14,15 +14,24 @@ import java.util.List;
 
 public abstract class ColumnDraggableBaseAdapter extends BaseAdapter implements ColumnDraggableSlideListener {
 
+	/**
+	 * 数据改变监听
+	 */
 	public interface OnDataChangeListener {
 
 		void onAdapterDataChange();
 	}
 
-	private   int                  mColumnDraggableScrollTo;
+	/**
+	 * list view 水平滑动到的位置(getView里面convertView不复用的时候要滑动到制定的位置)
+	 */
+	private   int                  mColumnSlideTo;
 	protected Context              mContext;
-	protected ColumnDraggableData  mData;
-	protected int                  mDraggableColumnStart;
+	private   ColumnDraggableData  mData;
+	/**
+	 * 从哪个column位置开始可以滑动
+	 */
+	protected int                  mSlideColumnStart;
 	private   OnDataChangeListener mOnDataChangeListener;
 
 	public ColumnDraggableBaseAdapter(Context context) {
@@ -32,12 +41,12 @@ public abstract class ColumnDraggableBaseAdapter extends BaseAdapter implements 
 	public ColumnDraggableBaseAdapter(Context context, ColumnDraggableData data) {
 		mContext = context;
 		mData = data;
-		mDraggableColumnStart = 0;
+		mSlideColumnStart = 0;
 	}
 
 	public void setData(ColumnDraggableData data) {
 		mData = data;
-		mColumnDraggableScrollTo = 0;
+		mColumnSlideTo = 0;
 		notifyDataSetChanged();
 	}
 
@@ -70,9 +79,9 @@ public abstract class ColumnDraggableBaseAdapter extends BaseAdapter implements 
 
 	}
 
-	public void setDraggableColumnStart(int start) {
-		mDraggableColumnStart = start;
-		mColumnDraggableScrollTo = 0;
+	public void setSlideColumnStart(int start) {
+		mSlideColumnStart = start;
+		mColumnSlideTo = 0;
 		notifyDataSetChanged();
 	}
 
@@ -125,6 +134,7 @@ public abstract class ColumnDraggableBaseAdapter extends BaseAdapter implements 
 		ColumnDraggableHolder holder;
 		if (convertView == null) {
 			convertView = LayoutInflater.from(mContext).inflate(R.layout.item_column_draggable_wrap, parent, false);
+			//设置item高度
 			AbsListView.LayoutParams params = (AbsListView.LayoutParams) convertView.getLayoutParams();
 			params.height = getItemViewHeight();
 			convertView.setLayoutParams(params);
@@ -136,11 +146,11 @@ public abstract class ColumnDraggableBaseAdapter extends BaseAdapter implements 
 			if (itemData != null && !itemData.isEmpty()) {
 				for (int index = 0; index < itemData.size(); index++) {
 					View columnView;
-					if (index < mDraggableColumnStart) {
-						columnView = getFixedColumnViewByPosition(index, fixedLayout);
+					if (index < mSlideColumnStart) {
+						columnView = getFixedColumnView(index, fixedLayout);
 						fixedLayout.addView(columnView);
 					} else {
-						columnView = getSlideColumnViewPosition(index, slideLayout);
+						columnView = getSlideColumnView(index, slideLayout);
 						slideLayout.addView(columnView);
 					}
 					LinearLayout.LayoutParams columnParams = (LinearLayout.LayoutParams) columnView.getLayoutParams();
@@ -158,12 +168,12 @@ public abstract class ColumnDraggableBaseAdapter extends BaseAdapter implements 
 		//复用的时候不能滑倒指定位置
 		ColumnDraggableSlideLayout slideLayout = (ColumnDraggableSlideLayout) holder.getConvertView()
 																					.findViewById(R.id.column_draggable_item_drag_id);
-		slideLayout.scrollTo(mColumnDraggableScrollTo, 0);
+		slideLayout.scrollTo(mColumnSlideTo, 0);
 
 		if (itemData != null && !itemData.isEmpty()) {
 			for (int index = 0; index < itemData.size(); index++) {
 				if (holder.getColumnView(index) != null) {
-					convertColumnViewDataByPosition(index, holder.getColumnView(index), itemData.get(index), itemData);
+					convertColumnViewData(index, holder.getColumnView(index), itemData.get(index), itemData);
 				}
 			}
 		}
@@ -172,20 +182,50 @@ public abstract class ColumnDraggableBaseAdapter extends BaseAdapter implements 
 
 	@Override
 	public void onColumnSlideListener(int setX) {
-		mColumnDraggableScrollTo = setX;
+		mColumnSlideTo = setX;
 	}
 
+	/**
+	 * list view每一个item的高度
+	 *
+	 * @return item height
+	 */
 	public abstract int getItemViewHeight();
 
+	/**
+	 * 行里面，每个column的宽度
+	 *
+	 * @param columnIndex column下标
+	 * @return column 宽度
+	 */
 	public abstract int getColumnWidth(int columnIndex);
 
-	public abstract View getFixedColumnViewByPosition(int columnPosition, LinearLayout fixedColumnLayout);
+	/**
+	 * 获取固定column view
+	 *
+	 * @param columnIndex       column 下标
+	 * @param fixedColumnLayout 固定column的父布局
+	 * @return column view
+	 */
+	public abstract View getFixedColumnView(int columnIndex, LinearLayout fixedColumnLayout);
 
-	public abstract View getSlideColumnViewPosition(int columnPosition, ColumnDraggableSlideLayout slideColumnLayout);
+	/**
+	 * 获取可滑动的column view
+	 *
+	 * @param columnIndex       column 下标
+	 * @param slideColumnLayout 可滑动column的父布局
+	 * @return column view
+	 */
+	public abstract View getSlideColumnView(int columnIndex, ColumnDraggableSlideLayout slideColumnLayout);
 
-	public abstract void convertColumnViewDataByPosition(int columnPosition,
-														 View columnView,
-														 String columnData,
-														 List<String> columnDataList);
+	/**
+	 * 绑定数据
+	 *
+	 * @param columnIndex    column 下标
+	 * @param columnView     column view
+	 * @param columnData     adapter data
+	 * @param columnDataList column list data
+	 */
+	public abstract void convertColumnViewData(int columnIndex, View columnView, String columnData, List<String> columnDataList);
 
 }

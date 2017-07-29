@@ -3,11 +3,23 @@ package com.tuacy.columndragglelist.widget;
 import android.util.SparseArray;
 import android.view.View;
 
+/**
+ * 可以横向滑动的list view的holder
+ */
 public class ColumnDraggableHolder {
 
-	private View                mConvertView = null;
-	private int                 mPosition    = -1;
-	private SparseArray<View>   mColumnViews = null;
+	/**
+	 * list view item view
+	 */
+	private View              mConvertView = null;
+	/**
+	 * list view item position
+	 */
+	private int               mPosition    = -1;
+	/**
+	 * list view item all column view
+	 */
+	private SparseArray<View> mColumnViews = null;
 
 	public ColumnDraggableHolder(View contentView, int position) {
 		mConvertView = contentView;
@@ -27,16 +39,16 @@ public class ColumnDraggableHolder {
 	}
 
 	/**
-	 * 记录每一列的View
+	 * 记录每一列所有column的View
 	 *
-	 * @param columnPosition 列的位置
-	 * @param view           列的View
+	 * @param columnIndex 列的位置
+	 * @param view        列的View
 	 */
-	public void addColumnView(int columnPosition, View view) {
+	public void addColumnView(int columnIndex, View view) {
 		if (null == mColumnViews) {
 			mColumnViews = new SparseArray<>();
 		}
-		mColumnViews.put(columnPosition, view);
+		mColumnViews.put(columnIndex, view);
 	}
 
 	/**

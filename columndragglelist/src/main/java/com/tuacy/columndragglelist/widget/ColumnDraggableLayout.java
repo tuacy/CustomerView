@@ -136,7 +136,7 @@ public class ColumnDraggableLayout extends LinearLayout
 	public void setAdapter(ColumnDraggableBaseAdapter adapter) {
 		mAdapter = adapter;
 		if (mAdapter != null) {
-			mAdapter.setDraggableColumnStart(mDraggableColumnStart);
+			mAdapter.setSlideColumnStart(mDraggableColumnStart);
 			mAdapter.setOnDataChangeListener(this);
 		}
 		mListView.setAdapter(adapter);
