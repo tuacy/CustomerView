@@ -1,11 +1,15 @@
 package com.tuacy.columndragglelist.widget;
 
 import android.content.Context;
+import android.database.DataSetObserver;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
 import android.view.ViewConfiguration;
+import android.view.ViewGroup;
+import android.widget.BaseAdapter;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.Scroller;
@@ -18,26 +22,23 @@ import java.util.List;
 
 public class ColumnDraggableListView extends ListView {
 
-	private static final int SCROLL_DIRECTION_NONE       = 0;
-	private static final int SCROLL_DIRECTION_VERTICAL   = 1;
-	private static final int SCROLL_DIRECTION_HORIZONTAL = 2;
+	private static final int TYPE_REFRESH_CONTENT_VIEW   = 0x100;//刷新type
+	private static final int TYPE_LOAD_MORE_CONTENT_VIEW = 0x101;//加载更多type
+	private static final int SNAP_VELOCITY               = 500;//速度
 
-	public static final int DIRECTION_NONE  = 0;
-	public static final int DIRECTION_LEFT  = 1;
-	public static final int DIRECTION_RIGHT = 2;
-
-	private static final int SNAP_VELOCITY = 500;//速度
-
+	private boolean                            mEnableRefresh;
+	private RefreshHeader                      mRefreshHeader;
+	private boolean                            mEnableLoadMore;
 	private Scroller                           mScroller;
 	private VelocityTracker                    mVelocityTracker;
 	private int                                mTouchSlop;
-	private int                                mScrollDirection;
 	private float                              mLastMotionDownX;
 	private float                              mLastMotionDownY;
 	private float                              mLastMotionX;
 	private boolean                            mIsSliding;
-	private int                                mDirection;
 	private List<ColumnDraggableSlideListener> mSlideListenerList;
+	private DataObserver                       mDataObserver;
+	private WrapAdapter                        mWrapAdapter;
 
 	public ColumnDraggableListView(Context context) {
 		this(context, null);
@@ -54,18 +55,31 @@ public class ColumnDraggableListView extends ListView {
 
 	private void initData() {
 		mScroller = new Scroller(getContext());
+		mEnableRefresh = true;
+		mEnableLoadMore = false;
 		mTouchSlop = ViewConfiguration.get(getContext()).getScaledTouchSlop();//大于getScaledTouchSlop这个距离时才认为是触发事件
-		mScrollDirection = SCROLL_DIRECTION_NONE;
-		mDirection = DIRECTION_NONE;
+		mDataObserver = new DataObserver();
+		mRefreshHeader = new RefreshHeader(getContext());
 	}
 
 	@Override
 	public void setAdapter(ListAdapter adapter) {
-		super.setAdapter(adapter);
 		if (!(adapter instanceof ColumnDraggableBaseAdapter)) {
 			throw new IllegalArgumentException("adapter should abstract ColumnDraggableBaseAdapter");
 		}
 		addOnSlideListener((ColumnDraggableBaseAdapter) adapter);
+		mWrapAdapter = new WrapAdapter((ColumnDraggableBaseAdapter) adapter);//使用内部Adapter包装用户的Adapter
+		super.setAdapter(mWrapAdapter);
+		adapter.registerDataSetObserver(mDataObserver);//注册Adapter数据监听器
+		mDataObserver.onChanged();
+	}
+
+	@Override
+	public ListAdapter getAdapter() {
+		if (mWrapAdapter != null) {
+			return mWrapAdapter.mAdapter;
+		}
+		return null;
 	}
 
 	@Override
@@ -84,7 +98,6 @@ public class ColumnDraggableListView extends ListView {
 					mScroller.abortAnimation();
 				}
 				mIsSliding = false;
-				mScrollDirection = SCROLL_DIRECTION_NONE;
 				mLastMotionX = x;
 				mLastMotionDownX = x;
 				mLastMotionDownY = y;
@@ -92,23 +105,13 @@ public class ColumnDraggableListView extends ListView {
 			case MotionEvent.ACTION_MOVE:
 				final int xDiff = (int) Math.abs(x - mLastMotionDownX);
 				final int yDiff = (int) Math.abs(y - mLastMotionDownY);
-				if (mScrollDirection == SCROLL_DIRECTION_NONE) {
+				if (!mIsSliding) {
 					if (xDiff > mTouchSlop) {
-						if (xDiff > yDiff) {
-							mScrollDirection = SCROLL_DIRECTION_HORIZONTAL;
-						} else {
-							mScrollDirection = SCROLL_DIRECTION_VERTICAL;
-						}
+						mIsSliding = xDiff > yDiff;
 					}
 				}
 				//只有横向的滑动才认为有效
-				mIsSliding = mScrollDirection == SCROLL_DIRECTION_HORIZONTAL;
 				if (mIsSliding) {
-					if (x > mLastMotionX) {
-						mDirection = DIRECTION_RIGHT;
-					} else {
-						mDirection = DIRECTION_LEFT;
-					}
 					final int deltaX = (int) (mLastMotionX - x);//滑动的距离
 					mLastMotionX = x;
 					prepareSlideMove(deltaX);
@@ -139,7 +142,6 @@ public class ColumnDraggableListView extends ListView {
 				break;
 			case MotionEvent.ACTION_CANCEL:
 				mIsSliding = false;
-				mScrollDirection = SCROLL_DIRECTION_NONE;
 				if (mVelocityTracker != null) {
 					mVelocityTracker.recycle();
 					mVelocityTracker = null;
@@ -161,12 +163,16 @@ public class ColumnDraggableListView extends ListView {
 	}
 
 	/**
-	 * 判断是否还运行滑动
+	 * 判断是否可以滑动
 	 */
 	protected boolean canSlideHorizontal() {
-		if (getChildCount() > 0) {
-			View itemView = getChildAt(0);
+		for (int i = 0; i < getChildCount(); i++) {
+			View itemView = getChildAt(i);
 			ColumnDraggableSlideLayout slideView = (ColumnDraggableSlideLayout) itemView.findViewById(R.id.column_draggable_item_drag_id);
+			if (slideView == null) {
+				// 这个时候是refresh item 或者 load more item
+				continue;
+			}
 			//最多可以滑动的距离
 			int maxScrollX = slideView.getRealityWidth() - slideView.getWidth();
 			if (slideView.getScrollX() < maxScrollX && slideView.getScrollX() > 0) {
@@ -176,10 +182,41 @@ public class ColumnDraggableListView extends ListView {
 		return false;
 	}
 
-	private void prepareSlideSet(int setX) {
+	private int getMaxScrollX() {
 		for (int i = 0; i < getChildCount(); i++) {
 			View itemView = getChildAt(i);
 			ColumnDraggableSlideLayout slideView = (ColumnDraggableSlideLayout) itemView.findViewById(R.id.column_draggable_item_drag_id);
+			if (slideView == null) {
+				// 这个时候是refresh item 或者 load more item
+				continue;
+			}
+			return slideView.getRealityWidth() - slideView.getWidth();
+		}
+		return 0;
+	}
+
+	private int getCurrentScrollX() {
+		for (int i = 0; i < getChildCount(); i++) {
+			View itemView = getChildAt(i);
+			ColumnDraggableSlideLayout slideView = (ColumnDraggableSlideLayout) itemView.findViewById(R.id.column_draggable_item_drag_id);
+			if (slideView == null) {
+				// 这个时候是refresh item 或者 load more item
+				continue;
+			}
+			return slideView.getScrollX();
+		}
+		return 0;
+	}
+
+	private void prepareSlideSet(int setX) {
+		boolean notifyListener = false;
+		for (int i = 0; i < getChildCount(); i++) {
+			View itemView = getChildAt(i);
+			ColumnDraggableSlideLayout slideView = (ColumnDraggableSlideLayout) itemView.findViewById(R.id.column_draggable_item_drag_id);
+			if (slideView == null) {
+				// 这个时候是refresh item 或者 load more item
+				continue;
+			}
 			//最多可以滑动的距离
 			int maxScrollX = slideView.getRealityWidth() - slideView.getWidth();
 			if (slideView.getScrollX() <= maxScrollX && slideView.getScrollX() >= 0) {
@@ -192,18 +229,22 @@ public class ColumnDraggableListView extends ListView {
 					slideView.scrollTo(0, 0);
 				}
 			}
-		}
-		if (getChildCount() > 0) {
-			View itemView = getChildAt(0);
-			ColumnDraggableSlideLayout slideView = (ColumnDraggableSlideLayout) itemView.findViewById(R.id.column_draggable_item_drag_id);
-			notifySlideListener(slideView.getScrollX());
+			if (!notifyListener) {
+				notifySlideListener(slideView.getScrollX());
+				notifyListener = true;
+			}
 		}
 	}
 
 	private void prepareSlideMove(int moveX) {
+		boolean notifyListener = false;
 		for (int i = 0; i < getChildCount(); i++) {
 			View itemView = getChildAt(i);
 			ColumnDraggableSlideLayout slideView = (ColumnDraggableSlideLayout) itemView.findViewById(R.id.column_draggable_item_drag_id);
+			if (slideView == null) {
+				// 这个时候是refresh item 或者 load more item
+				continue;
+			}
 			//最多可以滑动的距离
 			int maxScrollX = slideView.getRealityWidth() - slideView.getWidth();
 			if (slideView.getScrollX() <= maxScrollX && slideView.getScrollX() >= 0) {
@@ -216,11 +257,10 @@ public class ColumnDraggableListView extends ListView {
 					slideView.scrollBy(-slideView.getScrollX(), 0);
 				}
 			}
-		}
-		if (getChildCount() > 0) {
-			View itemView = getChildAt(0);
-			ColumnDraggableSlideLayout slideView = (ColumnDraggableSlideLayout) itemView.findViewById(R.id.column_draggable_item_drag_id);
-			notifySlideListener(slideView.getScrollX());
+			if (!notifyListener) {
+				notifySlideListener(slideView.getScrollX());
+				notifyListener = true;
+			}
 		}
 	}
 
@@ -229,13 +269,7 @@ public class ColumnDraggableListView extends ListView {
 	}
 
 	private void prepareFling(int velocityX) {
-		if (getChildCount() == 0) {
-			return;
-		}
-		View itemView = getChildAt(0);
-		ColumnDraggableSlideLayout slideView = (ColumnDraggableSlideLayout) itemView.findViewById(R.id.column_draggable_item_drag_id);
-		int maxScrollX = slideView.getRealityWidth() - slideView.getWidth();
-		mScroller.fling(slideView.getScrollX(), 0, velocityX, 0, 0, maxScrollX, 0, 0);
+		mScroller.fling(getCurrentScrollX(), 0, velocityX, 0, 0, getMaxScrollX(), 0, 0);
 		invalidate();
 	}
 
@@ -257,6 +291,90 @@ public class ColumnDraggableListView extends ListView {
 	public void removeOnSlideListener(ColumnDraggableSlideListener listener) {
 		if (mSlideListenerList != null && mSlideListenerList.contains(listener)) {
 			mSlideListenerList.remove(listener);
+		}
+	}
+
+	private boolean isTop() {
+		return mRefreshHeader.getParent() != null;
+	}
+
+
+	private class WrapAdapter extends BaseAdapter {
+
+		private ColumnDraggableBaseAdapter mAdapter;
+
+		WrapAdapter(ColumnDraggableBaseAdapter adapter) {
+			mAdapter = adapter;
+		}
+
+		@Override
+		public int getCount() {
+			int count = mAdapter.getCount();
+			if (mEnableRefresh) {
+				count++;
+			}
+
+			if (mEnableLoadMore) {
+				count++;
+			}
+			return count;
+		}
+
+		@Override
+		public Object getItem(int i) {
+			return null;
+		}
+
+		@Override
+		public long getItemId(int i) {
+			return 0;
+		}
+
+		@Override
+		public int getItemViewType(int position) {
+			if (mEnableRefresh && position == 0) {
+				return TYPE_REFRESH_CONTENT_VIEW;
+			}
+			if (mEnableLoadMore && position == getCount() - 1) {
+				return TYPE_LOAD_MORE_CONTENT_VIEW;
+			}
+			return super.getItemViewType(position);
+		}
+
+		@Override
+		public View getView(int i, View view, ViewGroup viewGroup) {
+			if (getItemViewType(i) == TYPE_REFRESH_CONTENT_VIEW) {
+				return mRefreshHeader;
+			} else if (getItemViewType(i) == TYPE_LOAD_MORE_CONTENT_VIEW) {
+				//TODO:
+				return null;
+			}
+			if (view != null && view instanceof RefreshHeader) {
+				view = null;
+			}
+			return mAdapter.getView(mEnableRefresh ? i - 1 : i, view, viewGroup);//其它为自定义Adapter里面的Item类型
+		}
+	}
+
+	private class DataObserver extends DataSetObserver {//Adapter数据监听器 与 WrapAdapter联动作用
+
+
+		DataObserver() {
+			super();
+		}
+
+		@Override
+		public void onChanged() {
+			if (mWrapAdapter != null) {
+				mWrapAdapter.notifyDataSetChanged();
+			}
+		}
+
+		@Override
+		public void onInvalidated() {
+			if (mWrapAdapter != null) {
+				mWrapAdapter.notifyDataSetInvalidated();
+			}
 		}
 	}
 }
