@@ -1,3 +1,3 @@
-include ':library', ':copywps', ':columndragglelist'
+include ':library', ':copywps', ':columndragglelist', ':refresh'
 include 'layoutparams'
 include 'layoutanimation'
