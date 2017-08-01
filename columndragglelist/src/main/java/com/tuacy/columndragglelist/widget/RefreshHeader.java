@@ -6,6 +6,7 @@ import android.content.Context;
 import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,27 +27,27 @@ public class RefreshHeader extends LinearLayout implements BaseRefreshHeader {
 	/**
 	 * 内部容器
 	 */
-	private RelativeLayout container;
+	private RelativeLayout mContainer;
 	/**
 	 * 指示箭头
 	 */
-	private ImageView      arrowImageView;
+	private ImageView      mArrowImageView;
 	/**
 	 * 提示文字
 	 */
-	private TextView       hintTextView;
+	private TextView       mHintTextView;
 	/**
 	 * 进度提示
 	 */
-	private ProgressBar    progressBar;
+	private ProgressBar    mProgressBar;
 	/**
 	 * 向下旋转动画
 	 */
-	private Animation      rotateDownAnim;
+	private Animation      mRotateDownAnim;
 	/**
 	 * 向上旋转动画
 	 */
-	private Animation      rotateUpAnim;
+	private Animation      mRotateUpAnim;
 	/**
 	 * 当前头部状态
 	 */
@@ -54,8 +55,8 @@ public class RefreshHeader extends LinearLayout implements BaseRefreshHeader {
 	/**
 	 * 刷新头部的高度
 	 */
-	private int            measuredHeight;
-	private Handler        handler;
+	private int            mMeasuredHeight;
+	private Handler        mHandler;
 
 	public RefreshHeader(Context context) {
 		this(context, null);
@@ -72,27 +73,33 @@ public class RefreshHeader extends LinearLayout implements BaseRefreshHeader {
 
 	private void init() {
 		mState = STATE_NORMAL;
-		container = (RelativeLayout) LayoutInflater.from(getContext()).inflate(R.layout.layout_refresh_header, null);
+		mContainer = (RelativeLayout) LayoutInflater.from(getContext()).inflate(R.layout.layout_refresh_header, null);
 		setLayoutParams(new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-		addView(container, new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0));
+		/**
+		 * 刚开始的时候高度设置为0,这样刚开始的时候下拉刷新的View存在，但是看不到
+		 */
+		addView(mContainer, new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0));
 
-		arrowImageView = (ImageView) container.findViewById(R.id.PullToRefresh_Header_ArrowImageView);
-		hintTextView = (TextView) container.findViewById(R.id.PullToRefresh_Header_HintTextView);
-		progressBar = (ProgressBar) container.findViewById(R.id.PullToRefresh_Header_ProgressBar);
+		mArrowImageView = (ImageView) mContainer.findViewById(R.id.PullToRefresh_Header_ArrowImageView);
+		mHintTextView = (TextView) mContainer.findViewById(R.id.PullToRefresh_Header_HintTextView);
+		mProgressBar = (ProgressBar) mContainer.findViewById(R.id.PullToRefresh_Header_ProgressBar);
 
-		rotateUpAnim = new RotateAnimation(0.0f, -180.0f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF,
-										   0.5f);//RELATIVE_TO_SELF是相对
-		rotateUpAnim.setDuration(ROTATE_ANIM_DURATION);
-		rotateUpAnim.setFillAfter(true);
+		mRotateUpAnim = new RotateAnimation(0.0f, -180.0f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF,
+											0.5f);//RELATIVE_TO_SELF是相对
+		mRotateUpAnim.setDuration(ROTATE_ANIM_DURATION);
+		mRotateUpAnim.setFillAfter(true);
 
-		rotateDownAnim = new RotateAnimation(-180.0f, 0.0f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
-		rotateDownAnim.setDuration(ROTATE_ANIM_DURATION);
-		rotateDownAnim.setFillAfter(true);
+		mRotateDownAnim = new RotateAnimation(-180.0f, 0.0f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
+		mRotateDownAnim.setDuration(ROTATE_ANIM_DURATION);
+		mRotateDownAnim.setFillAfter(true);
 
-		measure(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);//调用measure进行测量
-		measuredHeight = getMeasuredHeight();//获取刷新头部的标准高度
+		/**
+		 * 获取刷新头部的标准高度
+		 */
+		measure(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+		mMeasuredHeight = getMeasuredHeight();
 
-		handler = new Handler();
+		mHandler = new Handler();
 	}
 
 	@Override
@@ -100,7 +107,7 @@ public class RefreshHeader extends LinearLayout implements BaseRefreshHeader {
 		if (getVisibleHeight() > 0 || delta > 0) {
 			setVisibleHeight((int) delta + getVisibleHeight());//改变刷新头部的高度
 			if (mState <= STATE_RELEASE) {
-				if (getVisibleHeight() > measuredHeight) {
+				if (getVisibleHeight() > mMeasuredHeight) {
 					onStateChange(STATE_RELEASE);//如果下拉高度 大于 标准高度，将状态设置为 释放刷新
 				} else {
 					onStateChange(STATE_NORMAL);//如果下拉高度 小于 标准高度，将状态设置为 普通状态
@@ -112,7 +119,7 @@ public class RefreshHeader extends LinearLayout implements BaseRefreshHeader {
 	@Override
 	public void onComplete() {
 		onStateChange(STATE_COMPLETE);//将状态设置为 刷新完成
-		handler.postDelayed(new Runnable() {
+		mHandler.postDelayed(new Runnable() {
 			@Override
 			public void run() {
 				reset();//延迟进行重置
@@ -129,7 +136,7 @@ public class RefreshHeader extends LinearLayout implements BaseRefreshHeader {
 			isOnRefresh = false;
 		}
 
-		if (height >= measuredHeight && mState == STATE_RELEASE) {//如果下拉高度大于标准高度，并且是释放刷新状态
+		if (height >= mMeasuredHeight && mState == STATE_RELEASE) {//如果下拉高度大于标准高度，并且是释放刷新状态
 			onStateChange(STATE_REFRESHING);//将状态设置为刷新状态
 			isOnRefresh = true;
 		}
@@ -139,7 +146,7 @@ public class RefreshHeader extends LinearLayout implements BaseRefreshHeader {
 		}
 
 		if (mState == STATE_REFRESHING) {//如果手指释放时，是正在刷新状态，将头部高度设置为标准高度
-			smoothScrollTo(measuredHeight);
+			smoothScrollTo(mMeasuredHeight);
 		}
 		return isOnRefresh;
 	}
@@ -152,35 +159,35 @@ public class RefreshHeader extends LinearLayout implements BaseRefreshHeader {
 
 		switch (state) {
 			case STATE_NORMAL:
-				arrowImageView.setVisibility(View.VISIBLE);
-				progressBar.setVisibility(View.GONE);
-				hintTextView.setText(R.string.PullToRefresh_Header_Hint_Normal);
+				mArrowImageView.setVisibility(View.VISIBLE);
+				mProgressBar.setVisibility(View.GONE);
+				mHintTextView.setText(R.string.PullToRefresh_Header_Hint_Normal);
 				if (mState == STATE_RELEASE) {//当从滑动释放状态转变为普通状态时
-					arrowImageView.clearAnimation();
-					arrowImageView.startAnimation(rotateDownAnim);//将箭头转向下
+					mArrowImageView.clearAnimation();
+					mArrowImageView.startAnimation(mRotateDownAnim);//将箭头转向下
 				}
 				break;
 			case STATE_RELEASE:
-				arrowImageView.setVisibility(View.VISIBLE);
-				progressBar.setVisibility(View.GONE);
+				mArrowImageView.setVisibility(View.VISIBLE);
+				mProgressBar.setVisibility(View.GONE);
 
 				if (mState == STATE_NORMAL) {//从普通状态转变为滑动释放状态
-					arrowImageView.clearAnimation();
-					arrowImageView.startAnimation(rotateUpAnim);//将箭头转向上
+					mArrowImageView.clearAnimation();
+					mArrowImageView.startAnimation(mRotateUpAnim);//将箭头转向上
 				}
-				hintTextView.setText(R.string.PullToRefresh_Header_Hint_Release);
+				mHintTextView.setText(R.string.PullToRefresh_Header_Hint_Release);
 				break;
 			case STATE_REFRESHING:
-				arrowImageView.clearAnimation();
-				arrowImageView.setVisibility(View.GONE);
-				progressBar.setVisibility(View.VISIBLE);
-				smoothScrollTo(measuredHeight);//将头部高度设置为标准高度
-				hintTextView.setText(R.string.PullToRefresh_Header_Hint_Refreshing);
+				mArrowImageView.clearAnimation();
+				mArrowImageView.setVisibility(View.GONE);
+				mProgressBar.setVisibility(View.VISIBLE);
+				smoothScrollTo(mMeasuredHeight);//将头部高度设置为标准高度
+				mHintTextView.setText(R.string.PullToRefresh_Header_Hint_Refreshing);
 				break;
 			case STATE_COMPLETE:
-				arrowImageView.setVisibility(View.GONE);
-				progressBar.setVisibility(View.GONE);
-				hintTextView.setText(R.string.PullToRefresh_Header_Hint_Complete);
+				mArrowImageView.setVisibility(View.GONE);
+				mProgressBar.setVisibility(View.GONE);
+				mHintTextView.setText(R.string.PullToRefresh_Header_Hint_Complete);
 				break;
 		}
 		mState = state;
@@ -197,22 +204,35 @@ public class RefreshHeader extends LinearLayout implements BaseRefreshHeader {
 		animator.setDuration(300).start();
 	}
 
+	/**
+	 * 获取刷新头部的实时高度
+	 *
+	 * @return 实时高度
+	 */
 	public int getVisibleHeight() {
-		return container.getLayoutParams().height;//获取刷新头部的实时高度
+		return mContainer.getLayoutParams().height;
 	}
 
-	public void setVisibleHeight(int height) {//实时改变刷新头部的实时高度
+	/**
+	 * 实时改变刷新头部的实时高度
+	 *
+	 * @param height 实时高度
+	 */
+	public void setVisibleHeight(int height) {
 		if (height < 0) {
 			height = 0;
 		}
-		LayoutParams params = (LayoutParams) container.getLayoutParams();
+		LayoutParams params = (LayoutParams) mContainer.getLayoutParams();
 		params.height = height;
-		container.setLayoutParams(params);
+		mContainer.setLayoutParams(params);
 	}
 
-	public void reset() {//重置刷新头部的状态 将刷新头部的状态重置为隐藏
+	/**
+	 * 重置刷新头部的状态 将刷新头部的状态重置为隐藏
+	 */
+	public void reset() {
 		smoothScrollTo(0);
-		handler.postDelayed(new Runnable() {
+		mHandler.postDelayed(new Runnable() {
 			@Override
 			public void run() {
 				onStateChange(STATE_NORMAL);

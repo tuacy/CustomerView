@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:gravity="bottom">
@@ -14,29 +13,30 @@
             android:id="@+id/PullToRefresh_Header_HintTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="14sp"
-            tools:text="Pull To Refresh"
-            android:text="@string/PullToRefresh_Header_Hint_Normal"
+            android:layout_marginStart="10dp"
+            android:layout_marginLeft="10dp"
             android:layout_centerInParent="true"
-            android:layout_marginStart="10dp"/>
+            android:textSize="14sp"
+            android:text="@string/PullToRefresh_Header_Hint_Normal" />
 
         <ImageView
             android:id="@+id/PullToRefresh_Header_ArrowImageView"
             android:layout_width="20dp"
             android:layout_height="20dp"
+            android:layout_toStartOf="@id/PullToRefresh_Header_HintTextView"
+            android:layout_toLeftOf="@id/PullToRefresh_Header_HintTextView"
             android:layout_centerVertical="true"
-            android:src="@drawable/ic_pulltorefresh_arrow"
-            android:layout_toStartOf="@id/PullToRefresh_Header_HintTextView"/>
+            android:src="@drawable/ic_pulltorefresh_arrow" />
 
         <ProgressBar
             android:id="@+id/PullToRefresh_Header_ProgressBar"
             android:layout_width="20dp"
             android:layout_height="20dp"
+            android:layout_toStartOf="@id/PullToRefresh_Header_HintTextView"
+            android:layout_toLeftOf="@id/PullToRefresh_Header_HintTextView"
             android:layout_centerVertical="true"
-            android:visibility="gone"
-            android:layout_toStartOf="@id/PullToRefresh_Header_HintTextView"/>
+            android:visibility="gone" />
 
     </RelativeLayout>
-
 
 </RelativeLayout>

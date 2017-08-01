@@ -115,6 +115,10 @@ public class ColumnDraggableListView extends ListView {
 					final int deltaX = (int) (mLastMotionX - x);//滑动的距离
 					mLastMotionX = x;
 					prepareSlideMove(deltaX);
+				} else {
+					if (isRefreshViewVisible()) {
+
+					}
 				}
 				break;
 			case MotionEvent.ACTION_UP:
@@ -294,7 +298,7 @@ public class ColumnDraggableListView extends ListView {
 		}
 	}
 
-	private boolean isTop() {
+	private boolean isRefreshViewVisible() {
 		return mRefreshHeader.getParent() != null;
 	}
 
