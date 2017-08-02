@@ -9,6 +9,7 @@ import android.view.VelocityTracker;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.BaseAdapter;
 import android.widget.ListAdapter;
 import android.widget.ListView;
@@ -20,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class ColumnDraggableListView extends ListView {
+public class ColumnDraggableListView extends ListView implements AbsListView.OnScrollListener {
 
 	private static final int   TYPE_REFRESH_CONTENT_VIEW   = 0x100;//刷新type
 	private static final int   TYPE_LOAD_MORE_CONTENT_VIEW = 0x101;//加载更多type
@@ -36,6 +37,9 @@ public class ColumnDraggableListView extends ListView {
 	private boolean                            mEnableRefresh;
 	private RefreshHeader                      mRefreshHeader;
 	private boolean                            mEnableLoadMore;
+	private boolean                            mIsLoadingMore;
+	private boolean                            mIsNoMore;
+	private LoadMoreFooter                     mLoadMoreFooter;
 	private Scroller                           mScroller;
 	private VelocityTracker                    mVelocityTracker;
 	private int                                mTouchSlop;
@@ -65,11 +69,17 @@ public class ColumnDraggableListView extends ListView {
 	private void initData() {
 		mScroller = new Scroller(getContext());
 		mEnableRefresh = true;
-		mEnableLoadMore = false;
+		mEnableLoadMore = true;
+		mIsLoadingMore = false;
+		mIsNoMore = false;
 		mSlidingMode = TYPE_SLIDING_NONE;
 		mTouchSlop = ViewConfiguration.get(getContext()).getScaledTouchSlop();//大于getScaledTouchSlop这个距离时才认为是触发事件
 		mDataObserver = new DataObserver();
 		mRefreshHeader = new RefreshHeader(getContext());
+		mLoadMoreFooter = new LoadMoreFooter(getContext());
+		if (mEnableLoadMore) {
+			setOnScrollListener(this);
+		}
 	}
 
 	@Override
@@ -94,6 +104,7 @@ public class ColumnDraggableListView extends ListView {
 
 	@Override
 	public boolean onTouchEvent(MotionEvent ev) {
+		boolean handler = false;
 		if (mVelocityTracker == null) {
 			mVelocityTracker = VelocityTracker.obtain();//跟踪触摸事件滑动的帮助类
 		}
@@ -108,6 +119,7 @@ public class ColumnDraggableListView extends ListView {
 					mScroller.abortAnimation();
 				}
 				mSlidingMode = TYPE_SLIDING_NONE;
+				handler = false;
 				mLastMotionX = x;
 				mLastMotionY = y;
 				mLastMotionDownX = x;
@@ -123,18 +135,25 @@ public class ColumnDraggableListView extends ListView {
 						mSlidingMode = TYPE_SLIDING_VERTICAL;
 					}
 				}
-				// 横向的滑动
+
 				if (mSlidingMode == TYPE_SLIDING_HORIZONTAL) {
 					final int deltaX = (int) (mLastMotionX - x);//滑动的距离
 					prepareSlideMove(deltaX);
 					mLastMotionX = x;
 					mLastMotionY = y;
+					handler = true;
 				} else if (mSlidingMode == TYPE_SLIDING_VERTICAL && canPullRefresh()) {
 					if (isRefreshViewVisible()) {
 						final int deltaY = (int) (y - mLastMotionY);
-						mRefreshHeader.onMove(deltaY * RESISTANCE_COEFFICIENT);
 						mLastMotionX = x;
 						mLastMotionY = y;
+						mRefreshHeader.onMove(deltaY * RESISTANCE_COEFFICIENT);
+						if (mRefreshHeader.getVisibleHeight() > 0 && mRefreshHeader.getState() <= RefreshHeader.STATE_RELEASE) {
+							/**
+							 * 这个时候，就不要让外部去处理这个事件了,要不然滑动会乱的，自己处理掉就好了
+							 */
+							handler = true;
+						}
 					}
 				}
 				break;
@@ -175,11 +194,9 @@ public class ColumnDraggableListView extends ListView {
 				}
 				break;
 		}
-		if (mSlidingMode != TYPE_SLIDING_HORIZONTAL) {
-			super.onTouchEvent(ev);
-		}
-		return true;
+		return handler || super.onTouchEvent(ev);
 	}
+
 
 	@Override
 	public void computeScroll() {
@@ -338,6 +355,32 @@ public class ColumnDraggableListView extends ListView {
 		return mEnableRefresh /*&& mRefreshListener != null*/;
 	}
 
+	/**
+	 * 是否可以上拉加载
+	 *
+	 * @return 是否可以上拉加载
+	 */
+	private boolean canLoadMore() {
+		return mEnableLoadMore /*&& mRefreshListener != null*/;
+	}
+
+	@Override
+	public void onScrollStateChanged(AbsListView view, int scrollState) {
+		if (scrollState == OnScrollListener.SCROLL_STATE_IDLE && mRefreshHeader.getState() < BaseRefreshHeader.STATE_REFRESHING &&
+			canLoadMore() && mIsLoadingMore && !mIsNoMore) {
+			//获取最后一个可见项
+			int lastPosition = getLastVisiblePosition();
+			if (lastPosition == getCount() - 1) {
+				mIsLoadingMore = true;
+			}
+		}
+	}
+
+	@Override
+	public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+
+	}
+
 
 	private class WrapAdapter extends BaseAdapter {
 
@@ -386,10 +429,9 @@ public class ColumnDraggableListView extends ListView {
 			if (getItemViewType(i) == TYPE_REFRESH_CONTENT_VIEW) {
 				return mRefreshHeader;
 			} else if (getItemViewType(i) == TYPE_LOAD_MORE_CONTENT_VIEW) {
-				//TODO:
-				return null;
+				return mLoadMoreFooter;
 			}
-			if (view != null && view instanceof RefreshHeader) {
+			if (view != null && (view instanceof RefreshHeader || view instanceof LoadMoreFooter)) {
 				view = null;
 			}
 			return mAdapter.getView(mEnableRefresh ? i - 1 : i, view, viewGroup);//其它为自定义Adapter里面的Item类型
