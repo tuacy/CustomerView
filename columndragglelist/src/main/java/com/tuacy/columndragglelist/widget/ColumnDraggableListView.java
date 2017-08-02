@@ -3,6 +3,7 @@ package com.tuacy.columndragglelist.widget;
 import android.content.Context;
 import android.database.DataSetObserver;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
@@ -130,11 +131,11 @@ public class ColumnDraggableListView extends ListView {
 					mLastMotionY = y;
 				} else if (mSlidingMode == TYPE_SLIDING_VERTICAL && canPullRefresh()) {
 					if (isRefreshViewVisible()) {
-						final int deltaY = (int) (y - mLastMotionY);//滑动的距离
-						mRefreshHeader.onMove(deltaY * RESISTANCE_COEFFICIENT);//实时改变刷新头部的高度
+						final int deltaY = (int) (y - mLastMotionY);
+						mRefreshHeader.onMove(deltaY * RESISTANCE_COEFFICIENT);
+						mLastMotionX = x;
+						mLastMotionY = y;
 					}
-					mLastMotionX = x;
-					mLastMotionY = y;
 				}
 				break;
 			case MotionEvent.ACTION_UP:

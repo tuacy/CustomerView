@@ -6,7 +6,6 @@ import android.content.Context;
 import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -130,29 +129,28 @@ public class RefreshHeader extends LinearLayout implements BaseRefreshHeader {
 
 	@Override
 	public boolean onRelease() {
-		boolean isOnRefresh = false;//标志位，判断是否是在刷新触发用户的接口回调事件
+		boolean refresh = false;//标志位，判断是否是在刷新触发用户的接口回调事件
 
 		int height = getVisibleHeight();
 		if (height == 0) {
-			isOnRefresh = false;
+			refresh = false;
 		}
 
-		if (height >= mMeasuredHeight && mState == STATE_RELEASE) {//如果下拉高度大于标准高度，并且是释放刷新状态
+		if (height >= mMeasuredHeight && mState == STATE_RELEASE) {
 			/**
 			 * 将状态设置为刷新状态
 			 */
 			onStateChange(STATE_REFRESHING);
-			isOnRefresh = true;
+			refresh = true;
 		}
 
-		if (mState != STATE_REFRESHING) {//如果手指释放时，不是正在刷新状态，将头部高度设置为0
+		if (mState != STATE_REFRESHING) {
 			smoothScrollTo(0);
-		}
-
-		if (mState == STATE_REFRESHING) {//如果手指释放时，是正在刷新状态，将头部高度设置为标准高度
+		} else {
 			smoothScrollTo(mMeasuredHeight);
 		}
-		return isOnRefresh;
+
+		return refresh;
 	}
 
 	@Override
@@ -166,7 +164,7 @@ public class RefreshHeader extends LinearLayout implements BaseRefreshHeader {
 				mArrowImageView.setVisibility(View.VISIBLE);
 				mProgressBar.setVisibility(View.GONE);
 				mHintTextView.setText(R.string.PullToRefresh_Header_Hint_Normal);
-				if (mState == STATE_RELEASE) {//当从滑动释放状态转变为普通状态时
+				if (mState == STATE_RELEASE) {
 					mArrowImageView.clearAnimation();
 					mArrowImageView.startAnimation(mRotateDownAnim);//将箭头转向下
 				}
@@ -197,12 +195,17 @@ public class RefreshHeader extends LinearLayout implements BaseRefreshHeader {
 		mState = state;
 	}
 
-	private void smoothScrollTo(int destHeight) {//线性动画 改变 刷新头部的高度
-		ValueAnimator animator = ValueAnimator.ofInt(getVisibleHeight(), destHeight);//使用属性动画
+	/**
+	 * 通过动画来设置，view的高度
+	 *
+	 * @param destHeight 高度
+	 */
+	private void smoothScrollTo(int destHeight) {
+		ValueAnimator animator = ValueAnimator.ofInt(getVisibleHeight(), destHeight);
 		animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
 			@Override
-			public void onAnimationUpdate(ValueAnimator animation) {//在动画运行中监听动画数值的改变
-				setVisibleHeight((int) animation.getAnimatedValue());//用动画线性改变的数值  动态改变 刷新头部的高度
+			public void onAnimationUpdate(ValueAnimator animation) {
+				setVisibleHeight((int) animation.getAnimatedValue());
 			}
 		});
 		animator.setDuration(300).start();
