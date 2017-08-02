@@ -3,7 +3,6 @@ package com.tuacy.columndragglelist.widget;
 import android.content.Context;
 import android.database.DataSetObserver;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
@@ -22,9 +21,16 @@ import java.util.List;
 
 public class ColumnDraggableListView extends ListView {
 
-	private static final int TYPE_REFRESH_CONTENT_VIEW   = 0x100;//刷新type
-	private static final int TYPE_LOAD_MORE_CONTENT_VIEW = 0x101;//加载更多type
-	private static final int SNAP_VELOCITY               = 500;//速度
+	private static final int   TYPE_REFRESH_CONTENT_VIEW   = 0x100;//刷新type
+	private static final int   TYPE_LOAD_MORE_CONTENT_VIEW = 0x101;//加载更多type
+	private static final int   SNAP_VELOCITY               = 500;//速度
+	private static final int   TYPE_SLIDING_NONE           = 0;
+	private static final int   TYPE_SLIDING_HORIZONTAL     = 1;
+	private static final int   TYPE_SLIDING_VERTICAL       = 2;
+	/**
+	 * 拖动阻力系数
+	 */
+	private static final float RESISTANCE_COEFFICIENT      = 0.3f;
 
 	private boolean                            mEnableRefresh;
 	private RefreshHeader                      mRefreshHeader;
@@ -35,10 +41,12 @@ public class ColumnDraggableListView extends ListView {
 	private float                              mLastMotionDownX;
 	private float                              mLastMotionDownY;
 	private float                              mLastMotionX;
-	private boolean                            mIsSliding;
+	private float                              mLastMotionY;
+	private int                                mSlidingMode;
 	private List<ColumnDraggableSlideListener> mSlideListenerList;
 	private DataObserver                       mDataObserver;
 	private WrapAdapter                        mWrapAdapter;
+	private OnRefreshListener                  mRefreshListener;
 
 	public ColumnDraggableListView(Context context) {
 		this(context, null);
@@ -57,6 +65,7 @@ public class ColumnDraggableListView extends ListView {
 		mScroller = new Scroller(getContext());
 		mEnableRefresh = true;
 		mEnableLoadMore = false;
+		mSlidingMode = TYPE_SLIDING_NONE;
 		mTouchSlop = ViewConfiguration.get(getContext()).getScaledTouchSlop();//大于getScaledTouchSlop这个距离时才认为是触发事件
 		mDataObserver = new DataObserver();
 		mRefreshHeader = new RefreshHeader(getContext());
@@ -97,32 +106,39 @@ public class ColumnDraggableListView extends ListView {
 				if (!mScroller.isFinished()) {
 					mScroller.abortAnimation();
 				}
-				mIsSliding = false;
+				mSlidingMode = TYPE_SLIDING_NONE;
 				mLastMotionX = x;
+				mLastMotionY = y;
 				mLastMotionDownX = x;
 				mLastMotionDownY = y;
 				break;
 			case MotionEvent.ACTION_MOVE:
 				final int xDiff = (int) Math.abs(x - mLastMotionDownX);
 				final int yDiff = (int) Math.abs(y - mLastMotionDownY);
-				if (!mIsSliding) {
-					if (xDiff > mTouchSlop) {
-						mIsSliding = xDiff > yDiff;
+				if (mSlidingMode == TYPE_SLIDING_NONE) {
+					if (xDiff > mTouchSlop && xDiff > yDiff) {
+						mSlidingMode = TYPE_SLIDING_HORIZONTAL;
+					} else if (yDiff > mTouchSlop && yDiff > xDiff) {
+						mSlidingMode = TYPE_SLIDING_VERTICAL;
 					}
 				}
-				//只有横向的滑动才认为有效
-				if (mIsSliding) {
+				// 横向的滑动
+				if (mSlidingMode == TYPE_SLIDING_HORIZONTAL) {
 					final int deltaX = (int) (mLastMotionX - x);//滑动的距离
-					mLastMotionX = x;
 					prepareSlideMove(deltaX);
-				} else {
+					mLastMotionX = x;
+					mLastMotionY = y;
+				} else if (mSlidingMode == TYPE_SLIDING_VERTICAL && canPullRefresh()) {
 					if (isRefreshViewVisible()) {
-
+						final int deltaY = (int) (y - mLastMotionY);//滑动的距离
+						mRefreshHeader.onMove(deltaY * RESISTANCE_COEFFICIENT);//实时改变刷新头部的高度
 					}
+					mLastMotionX = x;
+					mLastMotionY = y;
 				}
 				break;
 			case MotionEvent.ACTION_UP:
-				if (mIsSliding) {
+				if (mSlidingMode == TYPE_SLIDING_HORIZONTAL) {
 					final VelocityTracker velocityTracker = mVelocityTracker;
 					velocityTracker.computeCurrentVelocity(1000);//1000毫秒移动了多少像素
 					int velocityX = (int) velocityTracker.getXVelocity();//当前的速度
@@ -138,21 +154,27 @@ public class ColumnDraggableListView extends ListView {
 						mVelocityTracker = null;
 					}
 
-					mIsSliding = false;
+					mSlidingMode = TYPE_SLIDING_NONE;
 					ev.setAction(MotionEvent.ACTION_CANCEL);
 					super.onTouchEvent(ev);
 					return true;
+				} else if (mSlidingMode == TYPE_SLIDING_VERTICAL && canPullRefresh()) {
+					if (isRefreshViewVisible() && mEnableRefresh) {
+						if (mRefreshHeader.onRelease() && mRefreshListener != null) {
+							mRefreshListener.onPullRefresh();
+						}
+					}
 				}
 				break;
 			case MotionEvent.ACTION_CANCEL:
-				mIsSliding = false;
+				mSlidingMode = TYPE_SLIDING_NONE;
 				if (mVelocityTracker != null) {
 					mVelocityTracker.recycle();
 					mVelocityTracker = null;
 				}
 				break;
 		}
-		if (!mIsSliding) {
+		if (mSlidingMode != TYPE_SLIDING_HORIZONTAL) {
 			super.onTouchEvent(ev);
 		}
 		return true;
@@ -298,8 +320,21 @@ public class ColumnDraggableListView extends ListView {
 		}
 	}
 
+	public void setOnRefreshListener(OnRefreshListener listener) {
+		mRefreshListener = listener;
+	}
+
 	private boolean isRefreshViewVisible() {
 		return mRefreshHeader.getParent() != null;
+	}
+
+	/**
+	 * 是否可以下拉刷新
+	 *
+	 * @return 是否可以下拉刷新
+	 */
+	private boolean canPullRefresh() {
+		return mEnableRefresh /*&& mRefreshListener != null*/;
 	}
 
 

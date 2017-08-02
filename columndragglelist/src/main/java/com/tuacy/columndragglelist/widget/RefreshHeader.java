@@ -73,7 +73,7 @@ public class RefreshHeader extends LinearLayout implements BaseRefreshHeader {
 
 	private void init() {
 		mState = STATE_NORMAL;
-		mContainer = (RelativeLayout) LayoutInflater.from(getContext()).inflate(R.layout.layout_refresh_header, null);
+		mContainer = (RelativeLayout) LayoutInflater.from(getContext()).inflate(R.layout.layout_refresh_header, this, false);
 		setLayoutParams(new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 		/**
 		 * 刚开始的时候高度设置为0,这样刚开始的时候下拉刷新的View存在，但是看不到
@@ -105,13 +105,14 @@ public class RefreshHeader extends LinearLayout implements BaseRefreshHeader {
 	@Override
 	public void onMove(float delta) {
 		if (getVisibleHeight() > 0 || delta > 0) {
-			setVisibleHeight((int) delta + getVisibleHeight());//改变刷新头部的高度
-			if (mState <= STATE_RELEASE) {
-				if (getVisibleHeight() > mMeasuredHeight) {
-					onStateChange(STATE_RELEASE);//如果下拉高度 大于 标准高度，将状态设置为 释放刷新
-				} else {
-					onStateChange(STATE_NORMAL);//如果下拉高度 小于 标准高度，将状态设置为 普通状态
-				}
+			setVisibleHeight((int) delta + getVisibleHeight());
+			if (getVisibleHeight() > mMeasuredHeight) {
+				/**
+				 * 达到了是否刷新的高度,设置状态为释放刷新
+				 */
+				onStateChange(STATE_RELEASE);
+			} else {
+				onStateChange(STATE_NORMAL);
 			}
 		}
 	}
@@ -137,7 +138,10 @@ public class RefreshHeader extends LinearLayout implements BaseRefreshHeader {
 		}
 
 		if (height >= mMeasuredHeight && mState == STATE_RELEASE) {//如果下拉高度大于标准高度，并且是释放刷新状态
-			onStateChange(STATE_REFRESHING);//将状态设置为刷新状态
+			/**
+			 * 将状态设置为刷新状态
+			 */
+			onStateChange(STATE_REFRESHING);
 			isOnRefresh = true;
 		}
 
