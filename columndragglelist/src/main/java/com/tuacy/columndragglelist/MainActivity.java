@@ -5,6 +5,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 
+import com.tuacy.columndragglelist.score.ScoreActivity;
 import com.tuacy.columndragglelist.weight.WeightActivity;
 
 
@@ -27,6 +28,13 @@ public class MainActivity extends AppCompatActivity {
 			@Override
 			public void onClick(View v) {
 				WeightActivity.startUp(mContext);
+			}
+		});
+
+		findViewById(R.id.button_score).setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				ScoreActivity.startUp(mContext);
 			}
 		});
 	}

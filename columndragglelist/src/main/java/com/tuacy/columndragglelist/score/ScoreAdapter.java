@@ -1,4 +1,5 @@
-package com.tuacy.columndragglelist.weight;
+package com.tuacy.columndragglelist.score;
+
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -14,13 +15,13 @@ import com.tuacy.columndragglelist.widget.ColumnDraggableSlideLayout;
 
 import java.util.List;
 
-public class ColumnAdapter extends ColumnDraggableBaseAdapter {
+public class ScoreAdapter extends ColumnDraggableBaseAdapter {
 
-	public ColumnAdapter(Context context) {
-		super(context);
+	public ScoreAdapter(Context context) {
+		this(context, null);
 	}
 
-	public ColumnAdapter(Context context, ColumnDraggableData data) {
+	public ScoreAdapter(Context context, ColumnDraggableData data) {
 		super(context, data);
 	}
 
@@ -29,12 +30,13 @@ public class ColumnAdapter extends ColumnDraggableBaseAdapter {
 		return (int) mContext.getResources().getDimension(R.dimen.item_height);
 	}
 
+
 	@Override
 	public LinearLayout.LayoutParams getColumnWidth(int position, int columnIndex, int columnCount) {
 		if (columnIndex < mSlideColumnStart) {
 			return new LinearLayout.LayoutParams((int) mContext.getResources().getDimension(R.dimen.item_fixed_column_width), ViewGroup.LayoutParams.MATCH_PARENT);
 		} else {
-			return new LinearLayout.LayoutParams((int) mContext.getResources().getDimension(R.dimen.item_slide_column_width), ViewGroup.LayoutParams.MATCH_PARENT);
+			return new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1);
 
 		}
 	}
@@ -61,5 +63,4 @@ public class ColumnAdapter extends ColumnDraggableBaseAdapter {
 			textView.setText(columnText);
 		}
 	}
-
 }

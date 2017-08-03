@@ -147,15 +147,14 @@ public abstract class ColumnDraggableBaseAdapter extends BaseAdapter implements 
 				for (int index = 0; index < itemData.size(); index++) {
 					View columnView;
 					if (index < mSlideColumnStart) {
-						columnView = getFixedColumnView(index, fixedLayout);
+						columnView = getFixedColumnView(position, index, itemData.size(), fixedLayout);
+						columnView.setLayoutParams(getColumnWidth(position, index, itemData.size()));
 						fixedLayout.addView(columnView);
 					} else {
-						columnView = getSlideColumnView(index, slideLayout);
+						columnView = getSlideColumnView(position, index, itemData.size(), slideLayout);
+						columnView.setLayoutParams(getColumnWidth(position, index, itemData.size()));
 						slideLayout.addView(columnView);
 					}
-					LinearLayout.LayoutParams columnParams = (LinearLayout.LayoutParams) columnView.getLayoutParams();
-					columnParams.width = getColumnWidth(index);
-					columnView.setLayoutParams(columnParams);
 					holder.addColumnView(index, columnView);
 				}
 			}
@@ -173,11 +172,11 @@ public abstract class ColumnDraggableBaseAdapter extends BaseAdapter implements 
 		if (itemData != null && !itemData.isEmpty()) {
 			for (int index = 0; index < itemData.size(); index++) {
 				if (holder.getColumnView(index) != null) {
-					convertColumnViewData(index, holder.getColumnView(index), itemData.get(index), itemData);
+					convertColumnViewData(position, index, holder.getColumnView(index), itemData.get(index), itemData);
 				}
 			}
 		}
-		return holder.getConvertView();
+		return convertView;
 	}
 
 	@Override
@@ -195,37 +194,44 @@ public abstract class ColumnDraggableBaseAdapter extends BaseAdapter implements 
 	/**
 	 * 行里面，每个column的宽度
 	 *
+	 * @param position item position
 	 * @param columnIndex column下标
-	 * @return column 宽度
+	 *                    @param columnCount 总数
+	 * @return column params
 	 */
-	public abstract int getColumnWidth(int columnIndex);
+	public abstract LinearLayout.LayoutParams getColumnWidth(int position, int columnIndex, int columnCount);
 
 	/**
 	 * 获取固定column view
 	 *
+	 * @param position item position
 	 * @param columnIndex       column 下标
+	 *                          @param columnCount 总数
 	 * @param fixedColumnLayout 固定column的父布局
 	 * @return column view
 	 */
-	public abstract View getFixedColumnView(int columnIndex, LinearLayout fixedColumnLayout);
+	public abstract View getFixedColumnView(int position, int columnIndex, int columnCount, LinearLayout fixedColumnLayout);
 
 	/**
 	 * 获取可滑动的column view
 	 *
+	 * @param position item position
 	 * @param columnIndex       column 下标
+	 *                          @param columnCount 总数
 	 * @param slideColumnLayout 可滑动column的父布局
 	 * @return column view
 	 */
-	public abstract View getSlideColumnView(int columnIndex, ColumnDraggableSlideLayout slideColumnLayout);
+	public abstract View getSlideColumnView(int position, int columnIndex, int columnCount, ColumnDraggableSlideLayout slideColumnLayout);
 
 	/**
 	 * 绑定数据
 	 *
+	 * @param position item position
 	 * @param columnIndex    column 下标
 	 * @param columnView     column view
 	 * @param columnData     adapter data
 	 * @param columnDataList column list data
 	 */
-	public abstract void convertColumnViewData(int columnIndex, View columnView, String columnData, List<String> columnDataList);
+	public abstract void convertColumnViewData(int position, int columnIndex, View columnView, String columnData, List<String> columnDataList);
 
 }

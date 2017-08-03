@@ -18,6 +18,8 @@
         </activity>
 
         <activity android:name=".weight.WeightActivity" />
+
+        <activity android:name=".score.ScoreActivity"/>
     </application>
 
 </manifest>

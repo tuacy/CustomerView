@@ -78,7 +78,8 @@ public class ColumnDraggableLayout extends LinearLayout
 			mHeaderView.getSlideLayout().removeAllViews();
 			for (int index = 0; index < mTitle.size(); index++) {
 				TextView textView = new TextView(mHeaderView.getFixedLayout().getContext());
-				LinearLayout.LayoutParams params = new LayoutParams(mAdapter.getColumnWidth(index), mTileHeight);
+				LinearLayout.LayoutParams params = mAdapter.getColumnWidth(0, index, mTitle.size());
+				params.height = mTileHeight;
 				textView.setLayoutParams(params);
 				textView.setGravity(Gravity.CENTER);
 				textView.setText(mTitle.get(index));
