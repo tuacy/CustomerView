@@ -6,7 +6,6 @@ import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -15,15 +14,13 @@ import com.tuacy.columndragglelist.R;
 
 public class LoadMoreFooter extends LinearLayout {
 
-	private LinearLayout container;//内部容器
-	private TextView     hintTextView;//加载更多提示文字
-	private ProgressBar  progressBar;//加载更多进度条
-
 	public static final int STATE_LOADING  = 0;//标志正在加载中
 	public static final int STATE_COMPLETE = 1;//标志加载完成
-	public static final int STATE_NOMORE   = 2;//标志没有更多内容
+	public static final int STATE_NO_MORE  = 2;//标志没有更多内容
 
-	private int measureHeight;//表示底部UI布局高度
+	private TextView    mHintTextView;
+	private ProgressBar mProgressBar;
+	private int         mMeasureHeight;
 
 	public LoadMoreFooter(Context context) {
 		this(context, null);
@@ -39,35 +36,35 @@ public class LoadMoreFooter extends LinearLayout {
 	}
 
 	private void init() {
-		container = (LinearLayout) LayoutInflater.from(getContext()).inflate(R.layout.layout_load_more_footer, null);//初始化容器视图
-		setLayoutParams(new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-		addView(container, new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+		LayoutInflater.from(getContext()).inflate(R.layout.layout_load_more_footer, this, true);
+		mHintTextView = (TextView) findViewById(R.id.text_load_more_hint);
+		mProgressBar = (ProgressBar) findViewById(R.id.progress_load_more);
+	}
 
-		hintTextView = (TextView) container.findViewById(R.id.LoadingMoreFooter_HintTextView);
-		progressBar = (ProgressBar) container.findViewById(R.id.LoadingMoreFooter_ProgressBar);
-
-		measure(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);//调用measure测试底部视图
-		measureHeight = getMeasuredHeight();//获取底部视图高度
+	@Override
+	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+		super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+		mMeasureHeight = getMeasuredHeight();
 	}
 
 	public void onStateChange(int state) {
 		switch (state) {
 			case STATE_LOADING:
-				progressBar.setVisibility(View.VISIBLE);
-				hintTextView.setText(R.string.LoadingMore_Footer_Hint_Loading);
+				mProgressBar.setVisibility(View.VISIBLE);
+				mHintTextView.setText(R.string.load_more_loading);
 				break;
 			case STATE_COMPLETE:
-				progressBar.setVisibility(View.GONE);
-				hintTextView.setText(R.string.LoadingMore_Footer_Hint_Complete);
+				mProgressBar.setVisibility(View.GONE);
+				mHintTextView.setText(R.string.load_more_complete);
 				break;
-			case STATE_NOMORE:
-				progressBar.setVisibility(View.GONE);
-				hintTextView.setText(R.string.LoadingMore_Footer_Hint_NoMore);
+			case STATE_NO_MORE:
+				mProgressBar.setVisibility(View.GONE);
+				mHintTextView.setText(R.string.load_more_no_more);
 				break;
 		}
 	}
 
 	public int getMeasureHeight() {
-		return measureHeight;
+		return mMeasureHeight;
 	}
 }

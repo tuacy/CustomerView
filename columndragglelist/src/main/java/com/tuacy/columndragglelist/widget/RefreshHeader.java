@@ -163,7 +163,7 @@ public class RefreshHeader extends LinearLayout implements BaseRefreshHeader {
 			case STATE_NORMAL:
 				mArrowImageView.setVisibility(View.VISIBLE);
 				mProgressBar.setVisibility(View.GONE);
-				mHintTextView.setText(R.string.PullToRefresh_Header_Hint_Normal);
+				mHintTextView.setText(R.string.pull_refresh_normal);
 				if (mState == STATE_RELEASE) {
 					mArrowImageView.clearAnimation();
 					mArrowImageView.startAnimation(mRotateDownAnim);//将箭头转向下
@@ -177,19 +177,19 @@ public class RefreshHeader extends LinearLayout implements BaseRefreshHeader {
 					mArrowImageView.clearAnimation();
 					mArrowImageView.startAnimation(mRotateUpAnim);//将箭头转向上
 				}
-				mHintTextView.setText(R.string.PullToRefresh_Header_Hint_Release);
+				mHintTextView.setText(R.string.pull_refresh_release);
 				break;
 			case STATE_REFRESHING:
 				mArrowImageView.clearAnimation();
 				mArrowImageView.setVisibility(View.GONE);
 				mProgressBar.setVisibility(View.VISIBLE);
 				smoothScrollTo(mMeasuredHeight);//将头部高度设置为标准高度
-				mHintTextView.setText(R.string.PullToRefresh_Header_Hint_Refreshing);
+				mHintTextView.setText(R.string.pull_refresh_refreshing);
 				break;
 			case STATE_COMPLETE:
 				mArrowImageView.setVisibility(View.GONE);
 				mProgressBar.setVisibility(View.GONE);
-				mHintTextView.setText(R.string.PullToRefresh_Header_Hint_Complete);
+				mHintTextView.setText(R.string.pull_refresh_complete);
 				break;
 		}
 		mState = state;

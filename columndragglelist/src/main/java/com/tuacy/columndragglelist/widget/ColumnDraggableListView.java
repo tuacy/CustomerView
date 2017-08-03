@@ -3,7 +3,6 @@ package com.tuacy.columndragglelist.widget;
 import android.content.Context;
 import android.database.DataSetObserver;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
@@ -68,8 +67,8 @@ public class ColumnDraggableListView extends ListView implements AbsListView.OnS
 
 	private void initData() {
 		mScroller = new Scroller(getContext());
-		mEnableRefresh = true;
-		mEnableLoadMore = true;
+		mEnableRefresh = false;
+		mEnableLoadMore = false;
 		mIsLoadingMore = false;
 		mIsNoMore = false;
 		mSlidingMode = TYPE_SLIDING_NONE;
@@ -338,6 +337,24 @@ public class ColumnDraggableListView extends ListView implements AbsListView.OnS
 		}
 	}
 
+	public void setPullRefreshEnable(boolean enable) {
+		if (mEnableRefresh != enable) {
+			if (mWrapAdapter != null) {
+				mWrapAdapter.notifyDataSetChanged();
+			}
+		}
+		mEnableRefresh = enable;
+	}
+
+	public void setPushLoadMoreEnable(boolean enable) {
+		if (mEnableLoadMore != enable) {
+			if (mWrapAdapter != null) {
+				mWrapAdapter.notifyDataSetChanged();
+			}
+		}
+		mEnableLoadMore = enable;
+	}
+
 	public void setOnRefreshListener(OnRefreshListener listener) {
 		mRefreshListener = listener;
 	}
@@ -364,14 +381,44 @@ public class ColumnDraggableListView extends ListView implements AbsListView.OnS
 		return mEnableLoadMore /*&& mRefreshListener != null*/;
 	}
 
+	/**
+	 * 下拉刷新完成，外部调用
+	 */
+	public void refreshCompelete() {
+		mRefreshHeader.onComplete();
+	}
+
+	/**
+	 * 上拉加载更多完成，外部调用
+	 */
+	public void loadMoreCompelete() {
+		mIsLoadingMore = false;
+		mLoadMoreFooter.onStateChange(LoadMoreFooter.STATE_COMPLETE);
+	}
+
+	/**
+	 * 设置没有更多数据，外部调用
+	 *
+	 * @param noMoreData 是否没有跟多数据
+	 */
+	public void setNoMoreData(boolean noMoreData) {
+		mIsNoMore = noMoreData;
+		mIsLoadingMore = false;
+		mLoadMoreFooter.onStateChange(noMoreData ? LoadMoreFooter.STATE_NO_MORE : LoadMoreFooter.STATE_LOADING);
+	}
+
 	@Override
 	public void onScrollStateChanged(AbsListView view, int scrollState) {
 		if (scrollState == OnScrollListener.SCROLL_STATE_IDLE && mRefreshHeader.getState() < BaseRefreshHeader.STATE_REFRESHING &&
-			canLoadMore() && mIsLoadingMore && !mIsNoMore) {
+			canLoadMore() && !mIsLoadingMore && !mIsNoMore) {
 			//获取最后一个可见项
 			int lastPosition = getLastVisiblePosition();
 			if (lastPosition == getCount() - 1) {
 				mIsLoadingMore = true;
+				mLoadMoreFooter.onStateChange(LoadMoreFooter.STATE_LOADING);
+				if (mRefreshListener != null) {
+					mRefreshListener.onPushLoadMore();
+				}
 			}
 		}
 	}
@@ -421,7 +468,7 @@ public class ColumnDraggableListView extends ListView implements AbsListView.OnS
 			if (mEnableLoadMore && position == getCount() - 1) {
 				return TYPE_LOAD_MORE_CONTENT_VIEW;
 			}
-			return super.getItemViewType(position);
+			return mAdapter.getItemViewType(position);
 		}
 
 		@Override

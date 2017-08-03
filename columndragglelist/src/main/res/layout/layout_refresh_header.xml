@@ -17,7 +17,7 @@
             android:layout_marginLeft="10dp"
             android:layout_centerInParent="true"
             android:textSize="14sp"
-            android:text="@string/PullToRefresh_Header_Hint_Normal" />
+            android:text="@string/pull_refresh_normal" />
 
         <ImageView
             android:id="@+id/PullToRefresh_Header_ArrowImageView"

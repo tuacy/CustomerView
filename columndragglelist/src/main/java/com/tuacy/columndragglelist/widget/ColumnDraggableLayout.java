@@ -147,6 +147,10 @@ public class ColumnDraggableLayout extends LinearLayout
 		return mAdapter;
 	}
 
+	public ColumnDraggableListView getListView() {
+		return mListView;
+	}
+
 
 	@Override
 	public void onAdapterDataChange() {

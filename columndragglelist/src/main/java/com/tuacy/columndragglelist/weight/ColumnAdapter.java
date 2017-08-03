@@ -1,4 +1,4 @@
-package com.tuacy.columndragglelist;
+package com.tuacy.columndragglelist.weight;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -6,6 +6,7 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.tuacy.columndragglelist.R;
 import com.tuacy.columndragglelist.widget.ColumnDraggableBaseAdapter;
 import com.tuacy.columndragglelist.widget.ColumnDraggableData;
 import com.tuacy.columndragglelist.widget.ColumnDraggableSlideLayout;

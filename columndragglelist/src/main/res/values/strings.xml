@@ -1,12 +1,13 @@
 <resources>
     <string name="app_name">ColumnDraggleList</string>
 
-    <string name="PullToRefresh_Header_Hint_Release">释放刷新</string>
-    <string name="PullToRefresh_Header_Hint_Normal">下拉刷新</string>
-    <string name="PullToRefresh_Header_Hint_Refreshing">正在刷新</string>
-    <string name="PullToRefresh_Header_Hint_Complete">刷新完成</string>
+    <string name="pull_refresh_release">释放刷新</string>
+    <string name="pull_refresh_normal">下拉刷新</string>
+    <string name="pull_refresh_refreshing">正在刷新</string>
+    <string name="pull_refresh_complete">刷新完成</string>
 
-    <string name="LoadingMore_Footer_Hint_Loading">正在加载</string>
-    <string name="LoadingMore_Footer_Hint_Complete">加载完成</string>
-    <string name="LoadingMore_Footer_Hint_NoMore">暂无更多</string>
+    <string name="load_more_loading">正在加载</string>
+    <string name="load_more_complete">加载完成</string>
+    <string name="load_more_no_more">暂无更多</string>
+    <string name="push_load_more">上拉刷新</string>
 </resources>
