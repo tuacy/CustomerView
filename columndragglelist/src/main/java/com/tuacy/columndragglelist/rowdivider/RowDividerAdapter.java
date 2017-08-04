@@ -1,4 +1,4 @@
-package com.tuacy.columndragglelist.score;
+package com.tuacy.columndragglelist.rowdivider;
 
 
 import android.content.Context;
@@ -15,13 +15,13 @@ import com.tuacy.columndragglelist.widget.ColumnDraggableSlideLayout;
 
 import java.util.List;
 
-public class ScoreAdapter extends ColumnDraggableBaseAdapter {
+public class RowDividerAdapter extends ColumnDraggableBaseAdapter {
 
-	public ScoreAdapter(Context context) {
+	public RowDividerAdapter(Context context) {
 		this(context, null);
 	}
 
-	public ScoreAdapter(Context context, ColumnDraggableData data) {
+	public RowDividerAdapter(Context context, ColumnDraggableData data) {
 		super(context, data);
 	}
 
@@ -34,9 +34,11 @@ public class ScoreAdapter extends ColumnDraggableBaseAdapter {
 	@Override
 	public LinearLayout.LayoutParams getColumnWidth(int position, int columnIndex, int columnCount) {
 		if (columnIndex < mSlideColumnStart) {
-			return new LinearLayout.LayoutParams((int) mContext.getResources().getDimension(R.dimen.item_fixed_column_width), ViewGroup.LayoutParams.MATCH_PARENT);
+			return new LinearLayout.LayoutParams((int) mContext.getResources().getDimension(R.dimen.item_fixed_column_width),
+												 ViewGroup.LayoutParams.MATCH_PARENT);
 		} else {
-			return new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1);
+			return new LinearLayout.LayoutParams((int) mContext.getResources().getDimension(R.dimen.item_slide_column_width),
+												 ViewGroup.LayoutParams.MATCH_PARENT);
 
 		}
 	}
@@ -61,6 +63,11 @@ public class ScoreAdapter extends ColumnDraggableBaseAdapter {
 		} else {
 			TextView textView = (TextView) columnView.findViewById(R.id.text_slide_cell_item);
 			textView.setText(columnText);
+		}
+		if (position % 2 == 0) {
+			rowView.setBackgroundColor(mContext.getResources().getColor(R.color.color_radix));
+		} else {
+			rowView.setBackgroundColor(mContext.getResources().getColor(R.color.color_even));
 		}
 	}
 }

@@ -152,6 +152,12 @@ public class ColumnDraggableLayout extends LinearLayout
 		return mListView;
 	}
 
+	public void setTitleBackground(int color) {
+		if (mHeaderView != null) {
+			mHeaderView.setBackgroundColor(color);
+		}
+	}
+
 
 	@Override
 	public void onAdapterDataChange() {

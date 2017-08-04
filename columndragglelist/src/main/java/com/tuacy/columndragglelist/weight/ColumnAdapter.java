@@ -32,9 +32,11 @@ public class ColumnAdapter extends ColumnDraggableBaseAdapter {
 	@Override
 	public LinearLayout.LayoutParams getColumnWidth(int position, int columnIndex, int columnCount) {
 		if (columnIndex < mSlideColumnStart) {
-			return new LinearLayout.LayoutParams((int) mContext.getResources().getDimension(R.dimen.item_fixed_column_width), ViewGroup.LayoutParams.MATCH_PARENT);
+			return new LinearLayout.LayoutParams((int) mContext.getResources().getDimension(R.dimen.item_fixed_column_width),
+												 ViewGroup.LayoutParams.MATCH_PARENT);
 		} else {
-			return new LinearLayout.LayoutParams((int) mContext.getResources().getDimension(R.dimen.item_slide_column_width), ViewGroup.LayoutParams.MATCH_PARENT);
+			return new LinearLayout.LayoutParams((int) mContext.getResources().getDimension(R.dimen.item_slide_column_width),
+												 ViewGroup.LayoutParams.MATCH_PARENT);
 
 		}
 	}
@@ -51,7 +53,12 @@ public class ColumnAdapter extends ColumnDraggableBaseAdapter {
 	}
 
 	@Override
-	public void convertColumnViewData(int position, int columnIndex, View columnView, String columnData, List<String> columnDataList) {
+	public void convertColumnViewData(int position,
+									  int columnIndex,
+									  View columnView,
+									  View rowView,
+									  String columnData,
+									  List<String> columnDataList) {
 		String columnText = columnDataList.get(columnIndex);
 		if (columnIndex < mSlideColumnStart) {
 			TextView textView = (TextView) columnView.findViewById(R.id.text_fixed_cell_item);

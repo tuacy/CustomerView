@@ -17,4 +17,16 @@
         android:layout_height="wrap_content"
         android:text="成绩列表"/>
 
+    <Button
+        android:id="@+id/button_row_divider"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="区分行"/>
+
+    <Button
+        android:id="@+id/button_column_divider"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="列分行"/>
+
 </LinearLayout>

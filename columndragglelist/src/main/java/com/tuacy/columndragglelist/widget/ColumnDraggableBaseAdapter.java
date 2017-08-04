@@ -172,7 +172,7 @@ public abstract class ColumnDraggableBaseAdapter extends BaseAdapter implements 
 		if (itemData != null && !itemData.isEmpty()) {
 			for (int index = 0; index < itemData.size(); index++) {
 				if (holder.getColumnView(index) != null) {
-					convertColumnViewData(position, index, holder.getColumnView(index), itemData.get(index), itemData);
+					convertColumnViewData(position, index, holder.getColumnView(index), convertView, itemData.get(index), itemData);
 				}
 			}
 		}
@@ -194,9 +194,9 @@ public abstract class ColumnDraggableBaseAdapter extends BaseAdapter implements 
 	/**
 	 * 行里面，每个column的宽度
 	 *
-	 * @param position item position
+	 * @param position    item position
 	 * @param columnIndex column下标
-	 *                    @param columnCount 总数
+	 * @param columnCount 总数
 	 * @return column params
 	 */
 	public abstract LinearLayout.LayoutParams getColumnWidth(int position, int columnIndex, int columnCount);
@@ -204,9 +204,9 @@ public abstract class ColumnDraggableBaseAdapter extends BaseAdapter implements 
 	/**
 	 * 获取固定column view
 	 *
-	 * @param position item position
+	 * @param position          item position
 	 * @param columnIndex       column 下标
-	 *                          @param columnCount 总数
+	 * @param columnCount       总数
 	 * @param fixedColumnLayout 固定column的父布局
 	 * @return column view
 	 */
@@ -215,9 +215,9 @@ public abstract class ColumnDraggableBaseAdapter extends BaseAdapter implements 
 	/**
 	 * 获取可滑动的column view
 	 *
-	 * @param position item position
+	 * @param position          item position
 	 * @param columnIndex       column 下标
-	 *                          @param columnCount 总数
+	 * @param columnCount       总数
 	 * @param slideColumnLayout 可滑动column的父布局
 	 * @return column view
 	 */
@@ -226,12 +226,18 @@ public abstract class ColumnDraggableBaseAdapter extends BaseAdapter implements 
 	/**
 	 * 绑定数据
 	 *
-	 * @param position item position
+	 * @param position       item position
 	 * @param columnIndex    column 下标
 	 * @param columnView     column view
+	 * @param rowView        row view
 	 * @param columnData     adapter data
 	 * @param columnDataList column list data
 	 */
-	public abstract void convertColumnViewData(int position, int columnIndex, View columnView, String columnData, List<String> columnDataList);
+	public abstract void convertColumnViewData(int position,
+											   int columnIndex,
+											   View columnView,
+											   View rowView,
+											   String columnData,
+											   List<String> columnDataList);
 
 }

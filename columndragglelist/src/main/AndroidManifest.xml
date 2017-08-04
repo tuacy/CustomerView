@@ -19,7 +19,11 @@
 
         <activity android:name=".weight.WeightActivity" />
 
-        <activity android:name=".score.ScoreActivity"/>
+        <activity android:name=".score.ScoreActivity" />
+
+        <activity android:name=".rowdivider.RowDividerActivity" />
+
+        <activity android:name=".columndivider.ColumnDividerActivity" />
     </application>
 
 </manifest>
