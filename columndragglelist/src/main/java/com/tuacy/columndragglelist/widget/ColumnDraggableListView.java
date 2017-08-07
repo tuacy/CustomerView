@@ -102,6 +102,7 @@ public class ColumnDraggableListView extends ListView implements AbsListView.OnS
 		return null;
 	}
 
+	private boolean mIntercept;
 	private float mLastInterceptDownX;
 	private float mLastInterceptDownY;
 
@@ -115,21 +116,27 @@ public class ColumnDraggableListView extends ListView implements AbsListView.OnS
 			case MotionEvent.ACTION_DOWN:
 				mLastInterceptDownX = x;
 				mLastInterceptDownY = y;
+				mIntercept = false;
 				break;
 			case MotionEvent.ACTION_MOVE:
+				if (mIntercept) {
+					return true;
+				}
 				final int xDiff = (int) Math.abs(x - mLastInterceptDownX);
 				final int yDiff = (int) Math.abs(y - mLastInterceptDownY);
 				if (mSlidingMode == TYPE_SLIDING_NONE) {
 					if (xDiff > mTouchSlop && xDiff > yDiff) {
+						mIntercept = true;
 						handler = true;
 					}
 				}
-				mLastInterceptDownX = x;
-				mLastInterceptDownY = y;
+				break;
+			case MotionEvent.ACTION_UP:
+			case MotionEvent.ACTION_CANCEL:
+				mIntercept = false;
 				break;
 
 		}
-		Log.d("tuacy", handler + " = handler");
 		return handler || super.onInterceptTouchEvent(ev);
 	}
 
