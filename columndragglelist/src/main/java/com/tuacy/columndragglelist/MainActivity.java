@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 
 import com.tuacy.columndragglelist.columndivider.ColumnDividerActivity;
+import com.tuacy.columndragglelist.refresh.RefreshActivity;
 import com.tuacy.columndragglelist.rowdivider.RowDividerActivity;
 import com.tuacy.columndragglelist.score.ScoreActivity;
 import com.tuacy.columndragglelist.weight.WeightActivity;
@@ -51,6 +52,13 @@ public class MainActivity extends AppCompatActivity {
 			@Override
 			public void onClick(View v) {
 				ColumnDividerActivity.startUp(mContext);
+			}
+		});
+
+		findViewById(R.id.button_column_refresh).setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				RefreshActivity.startUp(mContext);
 			}
 		});
 	}

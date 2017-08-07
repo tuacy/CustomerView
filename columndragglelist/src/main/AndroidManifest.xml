@@ -24,6 +24,8 @@
         <activity android:name=".rowdivider.RowDividerActivity" />
 
         <activity android:name=".columndivider.ColumnDividerActivity" />
+
+        <activity android:name=".refresh.RefreshActivity" />
     </application>
 
 </manifest>

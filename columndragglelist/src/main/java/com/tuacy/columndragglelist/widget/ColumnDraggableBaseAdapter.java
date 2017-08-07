@@ -1,6 +1,7 @@
 package com.tuacy.columndragglelist.widget;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -177,6 +178,10 @@ public abstract class ColumnDraggableBaseAdapter extends BaseAdapter implements 
 			}
 		}
 		return convertView;
+	}
+
+	public int getColumnSlideTo() {
+		return mColumnSlideTo;
 	}
 
 	@Override

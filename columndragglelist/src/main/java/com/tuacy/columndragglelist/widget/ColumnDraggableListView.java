@@ -3,6 +3,7 @@ package com.tuacy.columndragglelist.widget;
 import android.content.Context;
 import android.database.DataSetObserver;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
@@ -18,6 +19,8 @@ import com.tuacy.columndragglelist.R;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static android.support.v4.widget.ViewDragHelper.INVALID_POINTER;
 
 
 public class ColumnDraggableListView extends ListView implements AbsListView.OnScrollListener {
@@ -76,9 +79,7 @@ public class ColumnDraggableListView extends ListView implements AbsListView.OnS
 		mDataObserver = new DataObserver();
 		mRefreshHeader = new RefreshHeader(getContext());
 		mLoadMoreFooter = new LoadMoreFooter(getContext());
-		if (mEnableLoadMore) {
-			setOnScrollListener(this);
-		}
+		setOnScrollListener(this);
 	}
 
 	@Override
@@ -99,6 +100,37 @@ public class ColumnDraggableListView extends ListView implements AbsListView.OnS
 			return mWrapAdapter.mAdapter;
 		}
 		return null;
+	}
+
+	private float mLastInterceptDownX;
+	private float mLastInterceptDownY;
+
+	@Override
+	public boolean onInterceptTouchEvent(MotionEvent ev) {
+		boolean handler = false;
+		final int action = ev.getAction();
+		final float x = ev.getX();
+		final float y = ev.getY();
+		switch (action) {
+			case MotionEvent.ACTION_DOWN:
+				mLastInterceptDownX = x;
+				mLastInterceptDownY = y;
+				break;
+			case MotionEvent.ACTION_MOVE:
+				final int xDiff = (int) Math.abs(x - mLastInterceptDownX);
+				final int yDiff = (int) Math.abs(y - mLastInterceptDownY);
+				if (mSlidingMode == TYPE_SLIDING_NONE) {
+					if (xDiff > mTouchSlop && xDiff > yDiff) {
+						handler = true;
+					}
+				}
+				mLastInterceptDownX = x;
+				mLastInterceptDownY = y;
+				break;
+
+		}
+		Log.d("tuacy", handler + " = handler");
+		return handler || super.onInterceptTouchEvent(ev);
 	}
 
 	@Override
@@ -369,7 +401,7 @@ public class ColumnDraggableListView extends ListView implements AbsListView.OnS
 	 * @return 是否可以下拉刷新
 	 */
 	private boolean canPullRefresh() {
-		return mEnableRefresh /*&& mRefreshListener != null*/;
+		return mEnableRefresh && mRefreshListener != null;
 	}
 
 	/**
@@ -378,20 +410,20 @@ public class ColumnDraggableListView extends ListView implements AbsListView.OnS
 	 * @return 是否可以上拉加载
 	 */
 	private boolean canLoadMore() {
-		return mEnableLoadMore /*&& mRefreshListener != null*/;
+		return mEnableLoadMore && mRefreshListener != null;
 	}
 
 	/**
 	 * 下拉刷新完成，外部调用
 	 */
-	public void refreshCompelete() {
+	public void refreshComplete() {
 		mRefreshHeader.onComplete();
 	}
 
 	/**
 	 * 上拉加载更多完成，外部调用
 	 */
-	public void loadMoreCompelete() {
+	public void loadMoreComplete() {
 		mIsLoadingMore = false;
 		mLoadMoreFooter.onStateChange(LoadMoreFooter.STATE_COMPLETE);
 	}
