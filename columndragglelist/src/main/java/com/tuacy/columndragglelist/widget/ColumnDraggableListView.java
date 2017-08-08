@@ -3,7 +3,6 @@ package com.tuacy.columndragglelist.widget;
 import android.content.Context;
 import android.database.DataSetObserver;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
@@ -19,8 +18,6 @@ import com.tuacy.columndragglelist.R;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static android.support.v4.widget.ViewDragHelper.INVALID_POINTER;
 
 
 public class ColumnDraggableListView extends ListView implements AbsListView.OnScrollListener {
@@ -102,42 +99,38 @@ public class ColumnDraggableListView extends ListView implements AbsListView.OnS
 		return null;
 	}
 
-	private boolean mIntercept;
-	private float mLastInterceptDownX;
-	private float mLastInterceptDownY;
 
 	@Override
 	public boolean onInterceptTouchEvent(MotionEvent ev) {
-		boolean handler = false;
 		final int action = ev.getAction();
 		final float x = ev.getX();
 		final float y = ev.getY();
 		switch (action) {
 			case MotionEvent.ACTION_DOWN:
-				mLastInterceptDownX = x;
-				mLastInterceptDownY = y;
-				mIntercept = false;
+				// 首先停止滚动
+				if (!mScroller.isFinished()) {
+					mScroller.abortAnimation();
+				}
+				mSlidingMode = TYPE_SLIDING_NONE;
+				mLastMotionX = x;
+				mLastMotionY = y;
+				mLastMotionDownX = x;
+				mLastMotionDownY = y;
 				break;
 			case MotionEvent.ACTION_MOVE:
-				if (mIntercept) {
-					return true;
-				}
-				final int xDiff = (int) Math.abs(x - mLastInterceptDownX);
-				final int yDiff = (int) Math.abs(y - mLastInterceptDownY);
+				final int xDiff = (int) Math.abs(x - mLastMotionDownX);
+				final int yDiff = (int) Math.abs(y - mLastMotionDownY);
 				if (mSlidingMode == TYPE_SLIDING_NONE) {
 					if (xDiff > mTouchSlop && xDiff > yDiff) {
-						mIntercept = true;
-						handler = true;
+						return true;
 					}
 				}
 				break;
 			case MotionEvent.ACTION_UP:
 			case MotionEvent.ACTION_CANCEL:
-				mIntercept = false;
 				break;
-
 		}
-		return handler || super.onInterceptTouchEvent(ev);
+		return super.onInterceptTouchEvent(ev);
 	}
 
 	@Override
@@ -152,16 +145,16 @@ public class ColumnDraggableListView extends ListView implements AbsListView.OnS
 		final float y = ev.getY();
 		switch (action) {
 			case MotionEvent.ACTION_DOWN:
-				// 首先停止滚动
-				if (!mScroller.isFinished()) {
-					mScroller.abortAnimation();
-				}
-				mSlidingMode = TYPE_SLIDING_NONE;
-				handler = false;
-				mLastMotionX = x;
-				mLastMotionY = y;
-				mLastMotionDownX = x;
-				mLastMotionDownY = y;
+//				// 首先停止滚动
+//				if (!mScroller.isFinished()) {
+//					mScroller.abortAnimation();
+//				}
+//				mSlidingMode = TYPE_SLIDING_NONE;
+//				handler = false;
+//				mLastMotionX = x;
+//				mLastMotionY = y;
+//				mLastMotionDownX = x;
+//				mLastMotionDownY = y;
 				break;
 			case MotionEvent.ACTION_MOVE:
 				final int xDiff = (int) Math.abs(x - mLastMotionDownX);
@@ -211,8 +204,6 @@ public class ColumnDraggableListView extends ListView implements AbsListView.OnS
 						mVelocityTracker.recycle();
 						mVelocityTracker = null;
 					}
-
-					mSlidingMode = TYPE_SLIDING_NONE;
 					ev.setAction(MotionEvent.ACTION_CANCEL);
 					super.onTouchEvent(ev);
 					return true;
@@ -223,6 +214,7 @@ public class ColumnDraggableListView extends ListView implements AbsListView.OnS
 						}
 					}
 				}
+				mSlidingMode = TYPE_SLIDING_NONE;
 				break;
 			case MotionEvent.ACTION_CANCEL:
 				mSlidingMode = TYPE_SLIDING_NONE;

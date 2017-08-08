@@ -70,7 +70,7 @@ public class RefreshAdapter extends ColumnDraggableBaseAdapter {
 			@Override
 			public void onClick(View v) {
 //				Toast.makeText(mContext, "row = " + position + "&column = " + columnIndex, Toast.LENGTH_SHORT).show();
-				Log.d("tuacy", "aaaaaaaa");
+				Log.d("tuacy", "row = " + position + "&column = " + columnIndex);
 			}
 		});
 	}
