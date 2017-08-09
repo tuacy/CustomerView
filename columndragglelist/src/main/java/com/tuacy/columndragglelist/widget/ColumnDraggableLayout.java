@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.widget.LinearLayout;
@@ -14,16 +13,19 @@ import com.tuacy.columndragglelist.R;
 
 import java.util.List;
 
-
+/**
+ * 既可以左右滑动，有可以上下滑动的ListView
+ * ColumnDraggableLayout布局包含两部分，header标题懒,ListView内容
+ */
 public class ColumnDraggableLayout extends LinearLayout
 	implements ColumnDraggableBaseAdapter.OnDataChangeListener, ColumnDraggableSlideListener {
 
 	/**
-	 * 头部布局
+	 * 头部布局(标题栏)
 	 */
 	private ColumnDraggableHeaderLayout mHeaderView;
 	/**
-	 * list view
+	 * list view(内容部分)
 	 */
 	private ColumnDraggableListView     mListView;
 	/**
@@ -31,10 +33,16 @@ public class ColumnDraggableLayout extends LinearLayout
 	 */
 	private ColumnDraggableBaseAdapter  mAdapter;
 	/**
-	 * 从哪一列开始可以滑动
+	 * 从哪一列开始可以滑动（一部分列是可滑动的）
 	 */
 	private int                         mDraggableColumnStart;
+	/**
+	 * 标题栏的高度
+	 */
 	private int                         mTileHeight;
+	/**
+	 * 标题内容list的形式
+	 */
 	private List<String>                mTitle;
 
 	public ColumnDraggableLayout(Context context) {
@@ -70,6 +78,9 @@ public class ColumnDraggableLayout extends LinearLayout
 
 	}
 
+	/**
+	 * 设置标题栏的View
+	 */
 	private void reloadTitleView() {
 		if (mTitle == null || mTitle.isEmpty()) {
 			mHeaderView.setVisibility(GONE);
@@ -94,6 +105,11 @@ public class ColumnDraggableLayout extends LinearLayout
 		}
 	}
 
+	/**
+	 * 设置标题栏的内容
+	 *
+	 * @param title 标题栏的内容
+	 */
 	private void setTitle(List<String> title) {
 		if (mTitle == null) {
 			mTitle = title;
@@ -138,6 +154,10 @@ public class ColumnDraggableLayout extends LinearLayout
 		mListView.addOnSlideListener(this);
 	}
 
+	/**
+	 * 设置
+	 * @param adapter
+	 */
 	public void setAdapter(ColumnDraggableBaseAdapter adapter) {
 		mAdapter = adapter;
 		if (mAdapter != null) {

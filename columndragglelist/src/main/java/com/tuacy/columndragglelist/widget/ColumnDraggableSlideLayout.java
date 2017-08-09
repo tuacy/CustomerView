@@ -7,7 +7,9 @@ import android.util.AttributeSet;
 import android.widget.LinearLayout;
 
 
-
+/**
+ * 可滑动列的布局，横向排列
+ */
 public class ColumnDraggableSlideLayout extends LinearLayout {
 
 	public ColumnDraggableSlideLayout(Context context) {
@@ -32,7 +34,7 @@ public class ColumnDraggableSlideLayout extends LinearLayout {
 	}
 
 	/**
-	 * 获取所有view的总宽度
+	 * 获取所有view的总宽度，所有的view都是横向排列的，我们的知道所有view的总的长度，才好去判断滑动的距离
 	 *
 	 * @return 宽度
 	 */
@@ -44,6 +46,11 @@ public class ColumnDraggableSlideLayout extends LinearLayout {
 		return realityWidth;
 	}
 
+	/**
+	 * TODO:让每次滑动停止的时候都停留在列的开始位置
+	 * @param direction：滑动的方向，左滑还是右滑
+	 * @return 为了到达列的开始位置还需要滑动的距离
+	 */
 	public int getSlideToColumnEdgeMoveX(int direction) {
 		//TODO:
 		return 0;
