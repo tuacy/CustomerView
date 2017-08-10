@@ -151,17 +151,24 @@ public class ColumnDraggableLayout extends LinearLayout
 		mHeaderView.setLayoutParams(params);
 		mHeaderView.setVisibility(GONE);
 		mListView = (ColumnDraggableListView) findViewById(R.id.column_draggable_list_id);
+		/**
+		 * list view里面的column滑动的时候，监听
+		 */
 		mListView.addOnSlideListener(this);
 	}
 
 	/**
-	 * 设置
-	 * @param adapter
+	 * 设置adapter
+	 *
+	 * @param adapter list view adapter
 	 */
 	public void setAdapter(ColumnDraggableBaseAdapter adapter) {
 		mAdapter = adapter;
 		if (mAdapter != null) {
 			mAdapter.setSlideColumnStart(mDraggableColumnStart);
+			/**
+			 * 这个是因为，我们标题栏的数据也是adapter里面给过来的，所有在adapter改变的时候要去判断标题栏是否改变。是实时通知过来
+			 */
 			mAdapter.setOnDataChangeListener(this);
 		}
 		mListView.setAdapter(adapter);
@@ -200,6 +207,9 @@ public class ColumnDraggableLayout extends LinearLayout
 
 	@Override
 	public void onColumnSlideListener(int setX) {
+		/**
+		 * list view 滑动的时候标题栏也要做相应的滑动
+		 */
 		mHeaderView.getSlideLayout().scrollTo(setX, 0);
 	}
 }

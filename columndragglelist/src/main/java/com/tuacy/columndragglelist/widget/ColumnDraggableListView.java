@@ -19,11 +19,19 @@ import com.tuacy.columndragglelist.R;
 import java.util.ArrayList;
 import java.util.List;
 
-
+/**
+ * 重新list view，加了一些左右滑动的处理
+ */
 public class ColumnDraggableListView extends ListView implements AbsListView.OnScrollListener {
 
-	private static final int   TYPE_REFRESH_CONTENT_VIEW   = 0x100;//刷新type
-	private static final int   TYPE_LOAD_MORE_CONTENT_VIEW = 0x101;//加载更多type
+	/**
+	 * adapter 下拉刷新的item type
+	 */
+	private static final int   TYPE_REFRESH_CONTENT_VIEW   = 0x100;
+	/**
+	 * adapter 上拉加载的item type
+	 */
+	private static final int   TYPE_LOAD_MORE_CONTENT_VIEW = 0x101;
 	private static final int   SNAP_VELOCITY               = 500;//速度
 	private static final int   TYPE_SLIDING_NONE           = 0;
 	private static final int   TYPE_SLIDING_HORIZONTAL     = 1;
@@ -122,6 +130,9 @@ public class ColumnDraggableListView extends ListView implements AbsListView.OnS
 				final int yDiff = (int) Math.abs(y - mLastMotionDownY);
 				if (mSlidingMode == TYPE_SLIDING_NONE) {
 					if (xDiff > mTouchSlop && xDiff > yDiff) {
+						/**
+						 * 横向滑动的时候，要把时间拦截下来，不让往下面传递了
+						 */
 						return true;
 					}
 				}
@@ -145,16 +156,19 @@ public class ColumnDraggableListView extends ListView implements AbsListView.OnS
 		final float y = ev.getY();
 		switch (action) {
 			case MotionEvent.ACTION_DOWN:
-//				// 首先停止滚动
-//				if (!mScroller.isFinished()) {
-//					mScroller.abortAnimation();
-//				}
-//				mSlidingMode = TYPE_SLIDING_NONE;
-//				handler = false;
-//				mLastMotionX = x;
-//				mLastMotionY = y;
-//				mLastMotionDownX = x;
-//				mLastMotionDownY = y;
+				/**
+				 * item里面的子View有点击事件的时候MotionEvent.ACTION_DOWN不会触发
+				 */
+				//				// 首先停止滚动
+				//				if (!mScroller.isFinished()) {
+				//					mScroller.abortAnimation();
+				//				}
+				//				mSlidingMode = TYPE_SLIDING_NONE;
+				//				handler = false;
+				//				mLastMotionX = x;
+				//				mLastMotionY = y;
+				//				mLastMotionDownX = x;
+				//				mLastMotionDownY = y;
 				break;
 			case MotionEvent.ACTION_MOVE:
 				final int xDiff = (int) Math.abs(x - mLastMotionDownX);
